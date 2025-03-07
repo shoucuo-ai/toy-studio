@@ -16,8 +16,8 @@ pub fn EffectDemo() -> View {
     create_effect(move || {
         let value = signal.get();
         let doubled = derived.get();
-        console_log!("value = {value}");
-        console_log!("signal = {signal}, doubled = {doubled}");
+        web_sys::console::log_1(&format!("value = {}", value).into());
+        web_sys::console::log_1(&format!("signal = {}, doubled = {}", value, doubled).into());
     });
     view! {
         div {

@@ -1,6 +1,6 @@
-use crate::components::admin::pages::*;
+use crate::components::admin::{app_store_page::AppStorePage, dashbaord_page::*, settings_page::SettingsPage, uv_page::UVPage};
 use sycamore::prelude::*;
-use sycamore_router::{use_location_hash, HistoryIntegration, Route, Router, StaticRouter};
+use sycamore_router::{ HistoryIntegration, Route, Router};
 
 #[derive(Route, Clone, PartialEq)]
 pub enum AdminRoute {

@@ -32,7 +32,7 @@ pub fn ListDemo() -> View {
 }
 
 #[component]
-pub fn TodoItem(todo: Todo) -> View {
+fn TodoItem(todo: Todo) -> View {
     view! {
         li { (todo.task) }
     }

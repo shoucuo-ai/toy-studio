@@ -65,12 +65,3 @@ fn AdminSidebar() -> View {
     }
 }
 
-#[component]
-fn AdminContent() -> View {
-    view! {
-        main(class="content") {
-            h2 { "Welcome to Admin Dashboard" }
-            p { "Please select an option from the menu on the left." }
-        }
-    }
-}

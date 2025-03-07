@@ -1,9 +1,11 @@
 pub mod layout;
-pub mod pages;
+pub mod dashbaord_page;
 pub mod routes;
-
+pub mod uv_page;
+pub mod app_store_page;
+pub mod settings_page;
 pub use layout::AdminLayout;
-pub use pages::*;
+pub use dashbaord_page::*;
 pub use routes::AdminRouter;
 
 pub const ADMIN_STYLES: &str = r#"
