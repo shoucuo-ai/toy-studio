@@ -1,5 +1,5 @@
 [package]
-name = "tauri-studio"
+name = "ai-studio"
 version = "0.1.0"
 description = "A Tauri App"
 authors = ["you"]
@@ -11,7 +11,7 @@ edition = "2021"
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "tauri_studio_lib"
+name = "ai_studio_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -23,4 +23,27 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-log = "2"
-
+# + charset
+# + cookies
+# + http2
+# + macos-system-configuration
+# + rustls-tls
+# - blocking
+# - brotli
+# - deflate
+# - gzip
+# - json
+# - multipart
+# - native-tls
+# - native-tls-alpn
+# - native-tls-vendored
+# - rustls-tls-manual-roots
+# - rustls-tls-native-roots
+# - rustls-tls-webpki-roots
+# - socks
+# - stream
+# - trust-dns
+# - unsafe-headers
+tauri-plugin-http = { version = "2", features = ["json"] }
+tauri-plugin-shell = "2"
+tauri-plugin-process = "2"
