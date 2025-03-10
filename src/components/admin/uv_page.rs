@@ -82,51 +82,87 @@ pub fn UVPage() -> View {
     });
 
     view! {
-        div(class="uv-page") {
+        div(class="container mx-auto px-4 py-8") {
             // 标签页导航
-            div(class="tab-nav") {
+            div(class="flex space-x-4 mb-6 border-b border-gray-200") {
                 button(
-                    class=if active_tab.get() == 0 { "tab-btn active" } else { "tab-btn" },
+                    class=if active_tab.get() == 0 {
+                        "px-4 py-2 text-blue-600 border-b-2 border-blue-600 font-medium"
+                    } else {
+                        "px-4 py-2 text-gray-500 hover:text-gray-700"
+                    },
                     on:click=move |_| active_tab.set(0)
-                ) { "UV配置" }
+                ) { "UV Config" }
                 button(
-                    class=if active_tab.get() == 1 { "tab-btn active" } else { "tab-btn" },
+                    class=if active_tab.get() == 1 {
+                        "px-4 py-2 text-blue-600 border-b-2 border-blue-600 font-medium"
+                    } else {
+                        "px-4 py-2 text-gray-500 hover:text-gray-700"
+                    },
                     on:click=move |_| active_tab.set(1)
-                ) { "Python环境" }
+                ) { "Python Environment" }
             }
 
             // 标签页内容
-            div(class="tab-content") {
+            div(class="mt-6") {
                 (match active_tab.get() {
                     0 => view! {
-                        div(class="uv-config") {
-                            h2 { "UV配置" }
-                            form {
-                                div(class="form-group") {
-                                    label { "cache dir" }
-                                    input(
-                                        r#type="text",
-                                        placeholder="cache dir",
-                                        bind:value=cache_dir
-                                    )
+                        div {
+                            h2(class="text-2xl font-bold mb-6") { "UV Config" }
+                            form(class="space-y-6 max-w-2xl") {
+                                div(class="space-y-2") {
+                                    label(class="block text-sm font-medium text-gray-700") { "Cache Directory" }
+                                    div(class="relative rounded-md shadow-sm") {
+                                        input(
+                                            class="block w-full rounded-md border-gray-300 pl-4 pr-12 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out hover:border-blue-400",
+                                            r#type="text",
+                                            placeholder="Enter cache directory path...",
+                                            bind:value=cache_dir
+                                        )
+                                        span(class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none") {
+                                            // You can add an icon here
+                                            i(class="text-gray-400") { "📁" }
+                                        }
+                                    }
+                                    p(class="mt-1 text-sm text-gray-500") { "Please specify the cache directory location for the UV package manager" }
                                 }
-                                button(r#type="submit") { "save" }
+                                button(
+                                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out",
+                                    r#type="submit"
+                                ) { "Save Configuration" }
                             }
                         }
                     },
                     1 => view! {
-                        div(class="python-env") {
-                            h2 { "Python envs" }
-                            div(class="env-list") {
-                                Keyed(
-                                    list=python_envs,
-                                    key=|env| env.key.clone(),
-                                    view=|env| view! {
-                                        div(class="env-item") {
-                                            h3 { (env.key) }
-                                        }
+                        div(class="overflow-x-auto") {
+                            h2(class="text-2xl font-bold mb-6") { "Python Environments" }
+                            table(class="w-full border-collapse bg-white shadow-sm rounded-lg overflow-hidden") {
+                                thead {
+                                    tr(class="bg-gray-50 border-b border-gray-200") {
+                                        th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "Name" }
+                                        th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "Version" }
+                                        th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "Path" }
+                                        th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "OS" }
+                                        th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "Architecture" }
+                                        th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "Implementation" }
                                     }
-                                )
+                                }
+                                tbody(class="divide-y divide-gray-200") {
+                                    Keyed(
+                                        list=python_envs,
+                                        key=|env| env.key.clone(),
+                                        view=|env| view! {
+                                            tr(class="hover:bg-gray-50 transition-colors duration-200") {
+                                                td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-900") { (env.key) }
+                                                td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-500") { (env.version.clone().unwrap_or_default()) }
+                                                td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-500") { (env.path.clone().unwrap_or_default()) }
+                                                td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-500") { (env.os.clone().unwrap_or_default()) }
+                                                td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-500") { (env.arch.clone().unwrap_or_default()) }
+                                                td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-500") { (env.implementation.clone().unwrap_or_default()) }
+                                            }
+                                        }
+                                    )
+                                }
                             }
                         }
                     },

@@ -18,8 +18,8 @@ struct GreetArgs<'a> {
 #[component]
 pub fn App() -> View {
     view! {
-        main(class="container") {
-            Banner()
+        main(class=" mx-auto") {
+
             AdminLayout()
         }
     }
