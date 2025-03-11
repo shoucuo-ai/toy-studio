@@ -3,11 +3,13 @@ use serde_wasm_bindgen::{from_value, to_value};
 use sycamore::prelude::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
+use web_sys::{Event, HtmlInputElement};
 
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "core"])]
     async fn invoke(cmd: &str, args: JsValue) -> JsValue;
+
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -51,6 +53,26 @@ pub fn UVPage() -> View {
             }
         }
     });
+
+    let handle_browse = {
+        let cache_dir = cache_dir.clone();
+        move |_| {
+            let cache_dir = cache_dir.clone();
+            spawn_local(async move {
+                let value = invoke("select_directory", JsValue::NULL).await;
+                if let Some(result) = value.as_string() {
+                    if !result.is_empty() {
+                        cache_dir.set(result);
+                    }
+                }
+            });
+        }
+    };
+
+    let handle_input = move |event: Event| {
+        let target: HtmlInputElement = event.target().unwrap().dyn_into().unwrap();
+        cache_dir.set(target.value());
+    };
 
     // 获取Python环境列表
     spawn_local({
@@ -111,16 +133,20 @@ pub fn UVPage() -> View {
                             form(class="space-y-6 max-w-2xl") {
                                 div(class="space-y-2") {
                                     label(class="block text-sm font-medium text-gray-700") { "Cache Directory" }
-                                    div(class="relative rounded-md shadow-sm") {
+                                    div(class="flex") {
                                         input(
-                                            class="block w-full rounded-md border-gray-300 pl-4 pr-12 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out hover:border-blue-400",
+                                            class="flex-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-l-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
                                             r#type="text",
-                                            placeholder="Enter cache directory path...",
-                                            bind:value=cache_dir
+                                            placeholder="Select cache directory",
+                                            value=cache_dir.get_clone(),
+                                            on:input=handle_input
                                         )
-                                        span(class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none") {
-                                            // You can add an icon here
-                                            i(class="text-gray-400") { "📁" }
+                                        button(
+                                            class="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 rounded-r-md shadow-sm bg-gray-50 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500",
+                                            r#type="button",
+                                            on:click=handle_browse
+                                        ) {
+                                            "Browse..."
                                         }
                                     }
                                     p(class="mt-1 text-sm text-gray-500") { "Please specify the cache directory location for the UV package manager" }
