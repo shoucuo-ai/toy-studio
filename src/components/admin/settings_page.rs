@@ -1,9 +1,16 @@
 use crate::components::toast::{Toast, ToastNotification, ToastType};
 use crate::store::AppConfig;
+use serde_wasm_bindgen::from_value;
 use sycamore::prelude::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{Event, HtmlInputElement, HtmlSelectElement, SubmitEvent};
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "tauri"])]
+    async fn invoke(cmd: &str, args: JsValue) -> JsValue;
+}
 
 #[component]
 pub fn SettingsPage() -> View {
@@ -71,6 +78,34 @@ pub fn SettingsPage() -> View {
         config.set(new_config);
     };
 
+    let browse_directory = {
+        let config = config.clone();
+        let toast = toast.clone();
+        move |_| {
+            let config = config.clone();
+            let toast = toast.clone();
+            spawn_local(async move {
+                let result = invoke("select_directory", JsValue::NULL).await;
+                console_log!("result: {:?}", result);
+                match from_value::<String>(result) {
+                    Ok(path) => {
+                        if path.len() > 0 {
+                            let mut new_config = config.get_clone();
+                            new_config.project_root_dir = path;
+                            config.set(new_config);
+                        }
+                    }
+                    Err(e) => {
+                        toast.set(Some(Toast {
+                            message: format!("Failed to select directory: {}", e),
+                            toast_type: ToastType::Error,
+                        }));
+                    }
+                }
+            });
+        }
+    };
+
     view! {
         div(class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8") {
             ToastNotification(toast=toast, duration_ms=3000u32)
@@ -110,15 +145,16 @@ pub fn SettingsPage() -> View {
                                     }
                                     div(class="flex") {
                                         input(
-                                            class="flex-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
+                                            class="flex-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-l-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
                                             r#type="text",
                                             placeholder="Select project root directory",
                                             value=create_memo(move || config.get_clone().project_root_dir.clone()),
                                             on:input=update_project_root
                                         )
                                         button(
-                                            class="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 rounded-r-md bg-gray-50 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500",
-                                            r#type="button"
+                                            class="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 rounded-r-md shadow-sm bg-gray-50 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500",
+                                            r#type="button",
+                                            on:click=browse_directory
                                         ) {
                                             "Browse..."
                                         }

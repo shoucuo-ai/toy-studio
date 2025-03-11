@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
+use tauri_plugin_dialog::DialogExt;
+use tauri_plugin_dialog::FileDialogBuilder;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AppConfig {
@@ -55,4 +57,20 @@ pub fn set_config(app_handle: AppHandle, config: String) -> Result<String, Strin
     fs::write(&config_path, &config).map_err(|e| e.to_string())?;
 
     Ok(config)
+}
+
+#[tauri::command]
+pub async fn select_directory(app_handle: AppHandle) -> Result<String, String> {
+    let f = app_handle.dialog().file();
+    let f = f.set_directory(PathBuf::from("."))
+        .set_title("select directory");
+    let dir = f.blocking_pick_folder();
+    match dir {
+        Some(path) => {
+            let path = path.as_path().unwrap().to_string_lossy().into_owned();
+            println!("path: {:?}", path);
+            Ok(path)
+        }
+        None => Ok("".to_string()),
+    }
 }
