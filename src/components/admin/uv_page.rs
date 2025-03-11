@@ -66,7 +66,7 @@ pub fn UVPage() -> View {
                                 python_envs.set(envs);
                             }
                             Err(e) => {
-                                console_log!("error: {:?}", e);
+                                    console_log!("error: {:?}", e);
                             }
                         }
                     }
@@ -77,7 +77,6 @@ pub fn UVPage() -> View {
 
     create_effect(move || {
         console_log!("cache_dir: {:?}", cache_dir.get_clone());
-
         console_log!("python_envs: {:?}", python_envs.get_clone());
     });
 

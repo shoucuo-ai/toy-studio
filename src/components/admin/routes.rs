@@ -1,4 +1,5 @@
-use crate::components::admin::{app_store_page::AppStorePage, dashbaord_page::*, settings_page::SettingsPage, uv_page::UVPage};
+use crate::components::admin::{app_store_page::AppStorePage, dashbaord_page::*,
+    settings_page::SettingsPage, uv_page::UVPage, todo::TodoPage};
 use sycamore::prelude::*;
 use sycamore_router::{ HistoryIntegration, Route, Router};
 
@@ -12,6 +13,8 @@ pub enum AdminRoute {
     AppStore,
     #[to("/settings")]
     Settings,
+    #[to("/todo")]
+    Todo,
     #[not_found]
     NotFound,
 }
@@ -25,6 +28,7 @@ pub fn AdminRouter() -> View {
             AdminRoute::UV => view! { UVPage() },
             AdminRoute::AppStore => view! { AppStorePage() },
             AdminRoute::Settings => view! { SettingsPage() },
+            AdminRoute::Todo => view! { TodoPage() },
             AdminRoute::NotFound => view! { "404 Not Found" },
         }
     };

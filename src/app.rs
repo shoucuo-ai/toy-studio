@@ -1,5 +1,4 @@
 use crate::components::admin::AdminLayout;
-use crate::components::banner::Banner;
 use serde::{Deserialize, Serialize};
 use sycamore::prelude::*;
 use wasm_bindgen::prelude::*;

@@ -1,5 +1,7 @@
 # Tauri + Sycamore
 
+当前项目基于 Tauri 框架，使用 Web 框架 Sycamore 和 CSS 框架 tailwind css。
+
 This template should help get you started developing with Tauri and Sycamore.
 
 ## Recommended IDE Setup
@@ -24,7 +26,15 @@ cargo tauri dev
 
 ### PDF 文档翻译
 
-https://github.com/Byaidu/PDFMathTranslate
+
+
+
+{
+  "name": "PDFMathTranslate",
+  "git": "https://github.com/Byaidu/PDFMathTranslate",
+  ""
+
+}
 
 ### 图片去水印
 

@@ -47,3 +47,4 @@ tauri-plugin-log = "2"
 tauri-plugin-http = { version = "2", features = ["json"] }
 tauri-plugin-shell = "2"
 tauri-plugin-process = "2"
+tauri-plugin-store = "2"

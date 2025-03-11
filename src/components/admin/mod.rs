@@ -4,6 +4,7 @@ pub mod routes;
 pub mod uv_page;
 pub mod app_store_page;
 pub mod settings_page;
+pub mod todo;
 pub use layout::AdminLayout;
 pub use dashbaord_page::*;
 pub use routes::AdminRouter;

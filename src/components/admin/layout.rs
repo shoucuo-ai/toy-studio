@@ -36,6 +36,7 @@ fn AdminSidebar() -> View {
                 AdminRoute::AppStore => "/appstore",
                 AdminRoute::Settings => "/settings",
                 AdminRoute::NotFound => "/404",
+                AdminRoute::Todo => "/todo",
             };
             navigate(path);
         }
@@ -95,8 +96,19 @@ fn AdminSidebar() -> View {
                         "System Settings"
                     }
                 }
+                li {
+                    a(
+                        href="/todo",
+                        class="flex items-center px-6 py-3 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg mx-2 transition-all duration-200 font-medium",
+                        on:click=handle_click(AdminRoute::Todo)
+                    ) {
+                        span(class="mr-3") {
+                            i(class="fas fa-cog")
+                        }
+                        "Todo"
+                    }
+                }
             }
         }
     }
 }
-
