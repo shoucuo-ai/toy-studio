@@ -1,5 +1,4 @@
-use crate::components::admin::{app_store_page::AppStorePage, dashbaord_page::*,
-    settings_page::SettingsPage, uv_page::UVPage, todo::TodoPage};
+use crate::components::admin::{app_store_page::AppStorePage, dashbaord_page::*, settings_page::SettingsPage, todo::TodoPage, uv_page::UVPage};
 use sycamore::prelude::*;
 use sycamore_router::{ HistoryIntegration, Route, Router};
 

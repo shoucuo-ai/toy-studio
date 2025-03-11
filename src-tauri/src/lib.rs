@@ -1,9 +1,6 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 use tauri::Manager;
-
-mod app;
-mod git;
-mod uv;
+mod command;
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -13,10 +10,6 @@ fn greet(name: &str) -> String {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_store::Builder::new().build())
-        .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_shell::init())
-        .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
@@ -28,10 +21,12 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             greet,
-            uv::uv_cache::get_uv_cache_dir,
-            uv::uv_envs::get_python_envs,
-            git::git_clone::git_clone,
-            app::app_list::get_app_list
+            command::uv_cache::get_uv_cache_dir,
+            command::uv_envs::get_python_envs,
+            command::git_clone::git_clone,
+            command::app_list::get_app_list,
+            command::config::get_config,
+            command::config::set_config,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

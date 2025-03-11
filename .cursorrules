@@ -1,5 +1,5 @@
-基于跨平台桌面应用开发框架使用 **Tauri 2.0** 开发，参考文档为 https://tauri.app/zh-cn/start/
-
-前端框架使用 **sycamore 0.9**，参考文档为 https://sycamore.dev/book/introduction
-
+基于跨平台桌面应用开发框架使用 Tauri 2.0 开发，参考文档为 https://tauri.app/zh-cn/start/
+前端框架使用 sycamore 0.9，参考文档为 https://sycamore.dev/book/introduction
 前端css使用 tailwind css，参考文档为 https://tailwindcss.com/docs/
+
+代码中用于 sycamore 0.9 显示的文字使用英文，不要使用中文

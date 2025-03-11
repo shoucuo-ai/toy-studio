@@ -18,6 +18,9 @@ web-sys = { version = "0.3", features = [
   "Location",
   "Storage",
   "HtmlInputElement",
+  "HtmlSelectElement",
+  "Event",
+  "EventTarget",
 ] }
 uuid = { version = "1.15", features = ["serde", "v4", "js"] }
 gloo-timers = { version = "0.3", features = ["futures"] }
