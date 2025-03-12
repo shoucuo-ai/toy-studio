@@ -1,4 +1,5 @@
 use crate::components::admin::routes::{AdminRoute, AdminRouter};
+use crate::store::AppConfig;
 use sycamore::prelude::*;
 use sycamore_router::navigate;
 
@@ -28,11 +29,12 @@ pub fn AdminLayout() -> View {
 
 #[component]
 fn AdminSidebar() -> View {
+    let config = use_context::<Signal<AppConfig>>();
+
     let handle_click = |route: AdminRoute| {
         move |_| {
             let path = match route {
                 AdminRoute::Dashboard => "/",
-                AdminRoute::UV => "/uv",
                 AdminRoute::AppStore => "/appstore",
                 AdminRoute::Settings => "/settings",
                 AdminRoute::NotFound => "/404",
@@ -58,18 +60,6 @@ fn AdminSidebar() -> View {
                             i(class="fas fa-home")
                         }
                         "Dashboard"
-                    }
-                }
-                li {
-                    a(
-                        href="/uv",
-                        class="flex items-center px-6 py-3 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg mx-2 transition-all duration-200 font-medium",
-                        on:click=handle_click(AdminRoute::UV)
-                    ) {
-                        span(class="mr-3") {
-                            i(class="fas fa-chart-line")
-                        }
-                        "UV"
                     }
                 }
                 li {

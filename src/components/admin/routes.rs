@@ -1,13 +1,17 @@
-use crate::components::admin::{app_store_page::AppStorePage, dashbaord_page::*, settings_page::SettingsPage, todo::TodoPage, uv_page::UVPage};
+use crate::components::{
+    admin::{
+        app_store_page::AppStorePage, dashboard_page::*,
+        todo::TodoPage,
+    },
+    settings_page::SettingsPage,
+};
 use sycamore::prelude::*;
-use sycamore_router::{ HistoryIntegration, Route, Router};
+use sycamore_router::{HistoryIntegration, Route, Router};
 
 #[derive(Route, Clone, PartialEq)]
 pub enum AdminRoute {
     #[to("/")]
     Dashboard,
-    #[to("/uv")]
-    UV,
     #[to("/appstore")]
     AppStore,
     #[to("/settings")]
@@ -24,7 +28,6 @@ pub fn AdminRouter() -> View {
         let route_value = route.get_clone();
         match route_value {
             AdminRoute::Dashboard => view! { DashboardPage() },
-            AdminRoute::UV => view! { UVPage() },
             AdminRoute::AppStore => view! { AppStorePage() },
             AdminRoute::Settings => view! { SettingsPage() },
             AdminRoute::Todo => view! { TodoPage() },

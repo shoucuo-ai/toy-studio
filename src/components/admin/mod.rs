@@ -1,14 +1,11 @@
 pub mod layout;
-pub mod dashbaord_page;
+pub mod dashboard_page;
 pub mod routes;
-pub mod uv_page;
 pub mod app_store_page;
-pub mod settings_page;
 pub mod todo;
-pub use layout::AdminLayout;
-pub use dashbaord_page::*;
-pub use routes::AdminRouter;
-
+pub mod settings;
+pub mod title_bar;
+pub use settings::*;
 pub const ADMIN_STYLES: &str = r#"
 .admin-layout {
     display: flex;

@@ -3,7 +3,6 @@ use std::fs;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_dialog::DialogExt;
-use tauri_plugin_dialog::FileDialogBuilder;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AppConfig {

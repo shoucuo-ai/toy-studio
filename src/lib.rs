@@ -3,7 +3,7 @@ pub mod components;
 pub mod store;
 
 pub use app::App;
-use components::titlebar::TitleBar;
+use components::title_bar::TitleBar;
 use sycamore::prelude::*;
 
 #[component]
