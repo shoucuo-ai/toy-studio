@@ -1,6 +1,7 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 use tauri::Manager;
 mod command;
+mod common;
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -10,6 +11,8 @@ fn greet(name: &str) -> String {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
@@ -22,13 +25,14 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             greet,
-            command::uv_cache::get_uv_cache_dir,
-            command::uv_envs::get_python_envs,
-            command::git_clone::git_clone,
-            command::app_list::get_app_list,
+            command::uv::uv_get_cache_dir,
+            command::uv::uv_get_python_envs,
+            command::git::git_clone,
+            command::app::get_app_list,
             command::config::get_config,
             command::config::set_config,
-            command::config::select_directory,
+            command::dialog::select_directory,
+            command::dialog::open_directory,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

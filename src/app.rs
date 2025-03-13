@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
-use sycamore::prelude::*;
+use sycamore:: prelude::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
+use crate::{components::frame::layout::AdminLayout, store::AppConfig};
 
-use crate::{components::layout::AdminLayout, store::AppConfig};
 
 #[wasm_bindgen]
 extern "C" {
@@ -24,16 +24,22 @@ pub fn App() -> View {
     spawn_local({
         let config = config.clone();
         async move {
-            if let Ok(loaded_config) = AppConfig::load().await {
-                config.set(loaded_config);
+            let data = AppConfig::load().await;
+            match  data {
+                Ok(loaded_config) => {
+                    console_log!("loaded_config: {:?}", loaded_config);
+                    config.set(loaded_config);
+                }
+                Err(e) => {
+                    console_log!("load config error: {:?}", e);
+                }
             }
         }
     });
 
     provide_context(config);
+
     view! {
-        main(class=" mx-auto") {
-            AdminLayout()
-        }
+        AdminLayout()
     }
 }

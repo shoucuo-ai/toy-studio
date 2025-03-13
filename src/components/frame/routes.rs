@@ -1,9 +1,7 @@
 use crate::components::{
     admin::{
         app_store_page::AppStorePage, dashboard_page::*,
-        todo::TodoPage,
-    },
-    settings_page::SettingsPage,
+    }, file_page::FilePage, settings_page::SettingsPage
 };
 use sycamore::prelude::*;
 use sycamore_router::{HistoryIntegration, Route, Router};
@@ -16,8 +14,8 @@ pub enum AdminRoute {
     AppStore,
     #[to("/settings")]
     Settings,
-    #[to("/todo")]
-    Todo,
+    #[to("/file")]
+    File,
     #[not_found]
     NotFound,
 }
@@ -30,7 +28,7 @@ pub fn AdminRouter() -> View {
             AdminRoute::Dashboard => view! { DashboardPage() },
             AdminRoute::AppStore => view! { AppStorePage() },
             AdminRoute::Settings => view! { SettingsPage() },
-            AdminRoute::Todo => view! { TodoPage() },
+            AdminRoute::File => view! { FilePage() },
             AdminRoute::NotFound => view! { "404 Not Found" },
         }
     };

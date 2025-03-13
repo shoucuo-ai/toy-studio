@@ -2,13 +2,15 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
-use tauri_plugin_dialog::DialogExt;
+
+use super::uv::uv_get_cache_dir;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AppConfig {
     pub language: String,
     pub project_root_dir: String,
     pub enable_external_uv: bool,
+    pub uv_cache_dir: String,
 }
 
 impl AppConfig {
@@ -16,10 +18,12 @@ impl AppConfig {
         let dir = app_handle.path().app_data_dir();
         let dir = dir.unwrap_or_else(|_| PathBuf::from(""));
         let dir = dir.to_string_lossy();
+        let cache_dir = uv_get_cache_dir().unwrap_or_else(|_| "".to_string());
         Self {
             language: "zh".to_string(),
             project_root_dir: dir.to_string(),
             enable_external_uv: true,
+            uv_cache_dir: cache_dir,
         }
     }
 }
@@ -56,20 +60,4 @@ pub fn set_config(app_handle: AppHandle, config: String) -> Result<String, Strin
     fs::write(&config_path, &config).map_err(|e| e.to_string())?;
 
     Ok(config)
-}
-
-#[tauri::command]
-pub async fn select_directory(app_handle: AppHandle) -> Result<String, String> {
-    let f = app_handle.dialog().file();
-    let f = f.set_directory(PathBuf::from("."))
-        .set_title("select directory");
-    let dir = f.blocking_pick_folder();
-    match dir {
-        Some(path) => {
-            let path = path.as_path().unwrap().to_string_lossy().into_owned();
-            println!("path: {:?}", path);
-            Ok(path)
-        }
-        None => Ok("".to_string()),
-    }
 }

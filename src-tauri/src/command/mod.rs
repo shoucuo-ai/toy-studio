@@ -1,5 +1,5 @@
-pub mod app_list;
-pub mod git_clone;
-pub mod uv_cache;
-pub mod uv_envs;
+pub mod app;
 pub mod config;
+pub mod dialog;
+pub mod git;
+pub mod uv;

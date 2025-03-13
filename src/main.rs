@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use ai_studio_ui::*;
+use toy_studio_ui::*;
 
 fn main() {
     console_error_panic_hook::set_once();

@@ -1,10 +1,7 @@
-pub mod layout;
 pub mod dashboard_page;
-pub mod routes;
 pub mod app_store_page;
-pub mod todo;
 pub mod settings;
-pub mod title_bar;
+pub mod file_page;
 pub use settings::*;
 pub const ADMIN_STYLES: &str = r#"
 .admin-layout {

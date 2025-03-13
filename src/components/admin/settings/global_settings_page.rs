@@ -109,78 +109,73 @@ pub fn GlobalSettingsPage() -> View {
     };
 
     view! {
-        div(class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8") {
+        div(class="bg-gray-50") {
             ToastNotification(toast=toast, duration_ms=3000u32)
-            div(class="max-w-2xl mx-auto") {
-                h1(class="text-3xl font-bold text-gray-900 mb-8 text-center") {
-                    "System Settings"
-                }
-                form(class="space-y-6 bg-white shadow rounded-lg p-6", on:submit=handle_submit) {
-                    div(class="space-y-4") {
-                        // 语言设置
-                        div(class="flex flex-col") {
-                            label(class="block text-sm font-medium text-gray-700 mb-1") {
-                                "Language"
-                            }
-                            select(
-                                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md",
-                                value=create_memo(move || config.get_clone().language.clone()),
-                                on:change=update_language
-                            ) {
-                                option(value="zh") { "Chinese" }
-                                option(value="en") { "English" }
-                            }
+            form(class="space-y-6 bg-white shadow rounded-lg p-6", on:submit=handle_submit) {
+                div(class="space-y-4") {
+                    // 语言设置
+                    div(class="flex flex-col") {
+                        label(class="block text-sm font-medium text-gray-700 mb-1") {
+                            "Language"
                         }
-
-                        // 项目根目录
-                        div(class="flex flex-col") {
-                            label(class="block text-sm font-medium text-gray-700 mb-1") {
-                                "Project Root Directory"
-                            }
-                            div(class="flex") {
-                                input(
-                                    class="flex-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-l-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
-                                    r#type="text",
-                                    placeholder="Select project root directory",
-                                    value=create_memo(move || config.get_clone().project_root_dir.clone()),
-                                    on:input=update_project_root
-                                )
-                                button(
-                                    class="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 rounded-r-md shadow-sm bg-gray-50 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500",
-                                    r#type="button",
-                                    on:click=browse_directory
-                                ) {
-                                    "Browse..."
-                                }
-                            }
+                        select(
+                            class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md",
+                            value=create_memo(move || config.get_clone().language.clone()),
+                            on:change=update_language
+                        ) {
+                            option(value="zh") { "Chinese" }
+                            option(value="en") { "English" }
                         }
+                    }
 
-                        // 外部UV设置
-                        div(class="flex items-center") {
+                    // 项目根目录
+                    div(class="flex flex-col") {
+                        label(class="block text-sm font-medium text-gray-700 mb-1") {
+                            "Project Root Directory"
+                        }
+                        div(class="flex") {
                             input(
-                                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded",
-                                r#type="checkbox",
-                                id="external-uv",
-                                checked=create_memo(move || config.get_clone().enable_external_uv),
-                                on:change=update_external_uv
+                                class="flex-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-l-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
+                                r#type="text",
+                                placeholder="Select project root directory",
+                                value=create_memo(move || config.get_clone().project_root_dir.clone()),
+                                on:input=update_project_root
                             )
-                            label(
-                                class="ml-2 block text-sm text-gray-700",
-                                r#for="external-uv"
+                            button(
+                                class="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 rounded-r-md shadow-sm bg-gray-50 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500",
+                                r#type="button",
+                                on:click=browse_directory
                             ) {
-                                "Enable External UV"
+                                "Browse..."
                             }
                         }
                     }
 
-                    // 保存按钮
-                    div(class="flex justify-end space-x-3 mt-6") {
-                        button(
-                            class="inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
-                            r#type="submit"
+                    // 外部UV设置
+                    div(class="flex items-center") {
+                        input(
+                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded",
+                            r#type="checkbox",
+                            id="external-uv",
+                            checked=create_memo(move || config.get_clone().enable_external_uv),
+                            on:change=update_external_uv
+                        )
+                        label(
+                            class="ml-2 block text-sm text-gray-700",
+                            r#for="external-uv"
                         ) {
-                            "Save Changes"
+                            "Enable External UV"
                         }
+                    }
+                }
+
+                // 保存按钮
+                div(class="flex justify-end space-x-3 mt-6") {
+                    button(
+                        class="inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
+                        r#type="submit"
+                    ) {
+                        "Save Changes"
                     }
                 }
             }

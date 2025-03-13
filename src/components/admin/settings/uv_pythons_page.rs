@@ -41,7 +41,7 @@ pub fn UVPythonsPage() -> View {
     spawn_local({
         let python_envs = python_envs.clone();
         async move {
-            match invoke("get_python_envs", to_value(&()).unwrap()).await {
+            match invoke("uv_get_python_envs", to_value(&()).unwrap()).await {
                 result => {
                     if let Ok(envs_json) = from_value::<String>(result) {
                         let envs: Result<Vec<PythonEnv>, serde_json::Error> =
@@ -65,36 +65,37 @@ pub fn UVPythonsPage() -> View {
     });
 
     view! {
-        div(class="overflow-x-auto") {
-            h2(class="text-2xl font-bold mb-6") { "Python Environments" }
-            table(class="w-full border-collapse bg-white shadow-sm rounded-lg overflow-hidden") {
-                thead {
-                    tr(class="bg-gray-50 border-b border-gray-200") {
-                        th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "Name" }
-                        th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "Version" }
-                        th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "Path" }
-                        th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "OS" }
-                        th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "Architecture" }
-                        th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "Implementation" }
-                    }
-                }
-                tbody(class="divide-y divide-gray-200") {
-                    Keyed(
-                        list=python_envs,
-                        key=|env| env.key.clone(),
-                        view=|env| view! {
-                            tr(class="hover:bg-gray-50 transition-colors duration-200") {
-                                td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-900") { (env.key) }
-                                td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-500") { (env.version.clone().unwrap_or_default()) }
-                                td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-500") { (env.path.clone().unwrap_or_default()) }
-                                td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-500") { (env.os.clone().unwrap_or_default()) }
-                                td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-500") { (env.arch.clone().unwrap_or_default()) }
-                                td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-500") { (env.implementation.clone().unwrap_or_default()) }
+        div(class="bg-white shadow rounded-lg p-6") {
+                    div(class="overflow-x-auto") {
+                        table(class="w-full border-collapse") {
+                            thead {
+                                tr(class="bg-gray-50 border-b border-gray-200") {
+                                    th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "Name" }
+                                    th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "Version" }
+                                    th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "Path" }
+                                    th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "OS" }
+                                    th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "Architecture" }
+                                    th(class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider") { "Implementation" }
+                                }
+                            }
+                            tbody(class="divide-y divide-gray-200") {
+                                Keyed(
+                                    list=python_envs,
+                                    key=|env| env.key.clone(),
+                                    view=|env| view! {
+                                        tr(class="hover:bg-gray-50 transition-colors duration-200") {
+                                            td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-900") { (env.key) }
+                                            td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-500") { (env.version.clone().unwrap_or_default()) }
+                                            td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-500") { (env.path.clone().unwrap_or_default()) }
+                                            td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-500") { (env.os.clone().unwrap_or_default()) }
+                                            td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-500") { (env.arch.clone().unwrap_or_default()) }
+                                            td(class="px-6 py-4 whitespace-nowrap text-sm text-gray-500") { (env.implementation.clone().unwrap_or_default()) }
+                                        }
+                                    }
+                                )
                             }
                         }
-                    )
+                    }
                 }
-            }
-        }
     }
 }
