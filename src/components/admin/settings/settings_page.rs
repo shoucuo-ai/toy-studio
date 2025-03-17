@@ -1,15 +1,16 @@
 use sycamore::prelude::*;
 
 use crate::components::{
-    global_settings_page::GlobalSettingsPage, uv_pythons_page::UVPythonsPage,
-    uv_settings_page::UVSettingsPage,
+    global_settings_page::GlobalSettingsPage, uv_pythons_page::UVPythonsPage, uv_settings_page::UVSettingsPage, AdminLayout, AdminRoute
 };
 
 #[component]
 pub fn SettingsPage() -> View {
     let active_tab = create_signal(0); // 0: UV配置, 1: Python环境
+
+
     view! {
-        div( ) {
+        AdminLayout(current_route=AdminRoute::Settings, inner_view= view! {
             // 标签页导航
             div(class="flex space-x-4 border-b border-gray-200") {
                 button(
@@ -47,6 +48,6 @@ pub fn SettingsPage() -> View {
                     _ => view! { "" }
                 })
             }
-        }
+        })
     }
 }

@@ -1,5 +1,10 @@
-pub mod app;
+pub mod product;
 pub mod config;
 pub mod dialog;
 pub mod git;
 pub mod uv;
+pub use product::*;
+pub use config::*;
+pub use dialog::*;
+pub use git::*;
+pub use uv::*;

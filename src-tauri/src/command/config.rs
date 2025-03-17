@@ -26,6 +26,12 @@ impl AppConfig {
             uv_cache_dir: cache_dir,
         }
     }
+
+    pub fn get_products_dir(&self) -> String {
+        let dir = PathBuf::from(&self.project_root_dir);
+        let dir = dir.join("./.local/products");
+        dir.to_string_lossy().to_string()
+    }
 }
 
 fn get_config_file_path(app_handle: &AppHandle) -> PathBuf {
@@ -36,18 +42,28 @@ fn get_config_file_path(app_handle: &AppHandle) -> PathBuf {
     dist
 }
 
-#[tauri::command]
-pub fn get_config(app_handle: AppHandle) -> Result<String, String> {
+pub fn get_app_config(app_handle: &AppHandle) -> Result<AppConfig, String> {
     let config_path = get_config_file_path(&app_handle);
     if !config_path.exists() {
-        let default_config = AppConfig::default(&app_handle);
-        let config_str =
-            serde_json::to_string_pretty(&default_config).map_err(|e| e.to_string())?;
+        let app_config = AppConfig::default(&app_handle);
+        let config_str = serde_json::to_string_pretty(&app_config).map_err(|e| e.to_string())?;
         fs::write(&config_path, &config_str).map_err(|e| e.to_string())?;
-        return Ok(config_str);
+        return Ok(app_config);
     }
+    match fs::read_to_string(&config_path) {
+        Ok(json) => {
+            let app_config = serde_json::from_str::<AppConfig>(&json);
+            app_config.map_err(|e| e.to_string())
+        }
+        Err(err) => return Err(err.to_string()),
+    }
+}
 
-    fs::read_to_string(&config_path).map_err(|e| e.to_string())
+#[tauri::command]
+pub fn get_config(app_handle: AppHandle) -> Result<String, String> {
+    let app_config = get_app_config(&app_handle)?;
+    let json = serde_json::to_string_pretty(&app_config);
+    json.map_err(|e| e.to_string())
 }
 
 #[tauri::command]

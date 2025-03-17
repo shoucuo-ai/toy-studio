@@ -31,7 +31,6 @@ impl AppConfig {
     pub async fn load() -> Result<Self, String> {
         let value = invoke("get_config", JsValue::NULL).await;
         if let Some(value) = value.as_string() {
-            console_log!("AppConfig load value: {}", value);
             let config = serde_json::from_str::<AppConfig>(&value).map_err(|e| e.to_string())?;
             Ok(config)
         } else {

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use sycamore:: prelude::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
-use crate::{components::frame::layout::AdminLayout, store::AppConfig};
+use crate::{components::AdminRouter, store::AppConfig};
 
 
 #[wasm_bindgen]
@@ -27,7 +27,6 @@ pub fn App() -> View {
             let data = AppConfig::load().await;
             match  data {
                 Ok(loaded_config) => {
-                    console_log!("loaded_config: {:?}", loaded_config);
                     config.set(loaded_config);
                 }
                 Err(e) => {
@@ -40,6 +39,6 @@ pub fn App() -> View {
     provide_context(config);
 
     view! {
-        AdminLayout()
+        AdminRouter()
     }
 }
