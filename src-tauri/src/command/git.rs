@@ -2,7 +2,8 @@ use std::path::Path;
 use std::process::Command;
 
 /// 执行git命令并返回结果
-fn execute_git_command(dir: &Path, args: &[&str]) -> Result<String, String> {
+fn execute_git_command<P: AsRef<Path>>(dir: P, args: &[&str]) -> Result<String, String> {
+    println!("execute_git_command:cd {} && git {:?}", dir.as_ref().to_string_lossy(), args);
     let output = Command::new("git")
         .current_dir(dir)
         .args(args)
@@ -17,7 +18,7 @@ fn execute_git_command(dir: &Path, args: &[&str]) -> Result<String, String> {
 }
 
 /// 检查目录是否是git仓库
-fn is_git_repository(path: &Path) -> bool {
+fn is_git_repository<P: AsRef<Path>>(path: P) -> bool {
     Command::new("git")
         .current_dir(path)
         .args(&["rev-parse", "--git-dir"])
@@ -27,7 +28,7 @@ fn is_git_repository(path: &Path) -> bool {
 }
 
 /// 获取git仓库的远程地址
-fn get_remote_url(path: &Path) -> Result<String, String> {
+fn get_remote_url<P: AsRef<Path>>(path: P) -> Result<String, String> {
     execute_git_command(path, &["config", "--get", "remote.origin.url"])
 }
 
@@ -40,17 +41,28 @@ fn normalize_url(url: &str) -> String {
 }
 
 /// 更新已存在的git仓库
-fn update_repository(path: &Path) -> Result<String, String> {
-    execute_git_command(path, &["pull", "--ff-only"])
+fn update_repository<P: AsRef<Path>>(path: P) -> Result<String, String> {
+    execute_git_command(path, &["pull"])
 }
 
 /// 克隆git仓库
-fn clone_repository(url: &str, path: &Path) -> Result<String, String> {
-    execute_git_command(Path::new("."), &["clone", url, &path.to_string_lossy()])
+fn clone_repository<P: AsRef<Path>>(url: &str, branch: String, path: P) -> Result<String, String> {
+    println!("clone_repository:{}", path.as_ref().to_string_lossy());
+    execute_git_command(
+        &Path::new("."),
+        &[
+            "clone",
+            url,
+            "-b",
+            &branch,
+            "--single-branch",
+            &path.as_ref().to_string_lossy(),
+        ],
+    )
 }
 
 /// 验证远程地址是否匹配
-fn verify_remote_url(path: &Path, expected_url: &str) -> Result<(), String> {
+fn verify_remote_url<P: AsRef<Path>>(path: P, expected_url: &str) -> Result<(), String> {
     let current_url = get_remote_url(path)?;
     let current_url = normalize_url(&current_url);
     let expected_url = normalize_url(expected_url);
@@ -64,18 +76,32 @@ fn verify_remote_url(path: &Path, expected_url: &str) -> Result<(), String> {
     Ok(())
 }
 
-#[tauri::command]
-pub fn git_clone(url: String, path: String) -> Result<String, String> {
-    let path = Path::new(&path);
-
+pub fn git_clone<P: AsRef<Path>>(
+    url: String,
+    branch: String,
+    path: P,
+    bak: P,
+) -> Result<String, String> {
+    let path = path.as_ref();
+    let bak = bak.as_ref();
     if path.exists() {
-        if !is_git_repository(path) {
-            return Err(format!("目标路径 '{}' 已存在且不是git仓库", path.display()));
+        println!("path exists:{}", path.display());
+        if !is_git_repository(&path) {
+            let _ = move_to_bak(&path, &bak);
+            clone_repository(&url, branch, path)
+        } else {
+            verify_remote_url(&path, &url)?;
+            update_repository(&path)
         }
-
-        verify_remote_url(path, &url)?;
-        update_repository(path)
     } else {
-        clone_repository(&url, path)
+        clone_repository(&url, branch, &path)
     }
+}
+fn move_to_bak<P: AsRef<Path>>(from: P, to: P) -> Result<(), String> {
+    println!(
+        "move_to_bak:{} to {}",
+        from.as_ref().to_string_lossy(),
+        to.as_ref().to_string_lossy()
+    );
+    std::fs::rename(from, to).map_err(|e| e.to_string())
 }

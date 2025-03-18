@@ -47,3 +47,9 @@ https://github.com/zuruoke/watermark-removal
     - 指定：`--cache-dir`、`UV_CACHE_DIR`、`tool.uv.cache-dir.`
     - Unix: `$XDG_CACHE_HOME/uv`、`$HOME/.cache/uv`
     - Windows：`%LOCALAPPDATA%\uv\cache`
+
+## TODO 确认
+
+### 当前浏览器、当前Tab激活
+
+

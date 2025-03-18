@@ -1,16 +1,10 @@
 use serde::{Deserialize, Serialize};
-use serde_wasm_bindgen::{from_value, to_value};
 use sycamore::prelude::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{Event, HtmlInputElement};
 
-
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "core"])]
-    async fn invoke(cmd: &str, args: JsValue) -> JsValue;
-}
+use crate::common::{invoke_for_string, invoke_tauri};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 struct PythonVersionParts {
@@ -42,11 +36,14 @@ pub fn UVSettingsPage() -> View {
     spawn_local({
         let cache_dir = cache_dir.clone();
         async move {
-            match invoke("uv_get_cache_dir", to_value(&()).unwrap()).await {
-                result => {
-                    if let Ok(dir) = from_value::<String>(result) {
-                        cache_dir.set(dir);
-                    }
+            let result = invoke_for_string("uv_get_cache_dir", JsValue::NULL).await;
+            console_log!("result: {:?}", result);
+            match result {
+                Some(dir) => {
+                    cache_dir.set(dir);
+                }
+                None => {
+                    console_log!("Failed to get UV cache directory");
                 }
             }
         }
@@ -57,7 +54,7 @@ pub fn UVSettingsPage() -> View {
         move |_| {
             let cache_dir = cache_dir.clone();
             spawn_local(async move {
-                let value = invoke("select_directory", JsValue::NULL).await;
+                let value = invoke_tauri("select_directory", JsValue::NULL).await;
                 if let Some(result) = value.as_string() {
                     if !result.is_empty() {
                         cache_dir.set(result);

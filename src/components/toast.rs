@@ -32,7 +32,7 @@ pub fn ToastNotification(
     });
 
     let toast_class = move || {
-        let base_class = "fixed top-4 right-4 p-4 rounded-lg shadow-lg transform transition-all duration-500 ";
+        let base_class = "fixed top-4 right-4 p-4 rounded-lg shadow-lg transform transition-all duration-500 z-[9999] ";
         let visibility_class = if visible.get() {
             "translate-x-0 opacity-100"
         } else {

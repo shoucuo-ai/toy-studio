@@ -34,7 +34,7 @@ impl AppConfig {
     }
 }
 
-fn get_config_file_path(app_handle: &AppHandle) -> PathBuf {
+pub fn get_config_file_path(app_handle: &AppHandle) -> PathBuf {
     let config_dir = app_handle.path().app_config_dir().unwrap();
     fs::create_dir_all(&config_dir).unwrap();
     let dist = config_dir.join("config.json");
@@ -42,6 +42,19 @@ fn get_config_file_path(app_handle: &AppHandle) -> PathBuf {
     dist
 }
 
+pub fn get_product_install_path(app_handle: &AppHandle) -> PathBuf {
+    let config_dir = app_handle.path().app_data_dir().unwrap();
+    let dist = config_dir.join("apps");
+    println!("config_dir: {:?}", dist);
+    dist
+}
+
+pub fn get_product_bak_path(app_handle: &AppHandle) -> PathBuf {
+    let config_dir = app_handle.path().app_data_dir().unwrap();
+    let dist = config_dir.join(".local/bak");
+    println!("config_dir: {:?}", dist);
+    dist
+}
 pub fn get_app_config(app_handle: &AppHandle) -> Result<AppConfig, String> {
     let config_path = get_config_file_path(&app_handle);
     if !config_path.exists() {
@@ -58,6 +71,9 @@ pub fn get_app_config(app_handle: &AppHandle) -> Result<AppConfig, String> {
         Err(err) => return Err(err.to_string()),
     }
 }
+
+
+
 
 #[tauri::command]
 pub fn get_config(app_handle: AppHandle) -> Result<String, String> {

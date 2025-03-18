@@ -1,9 +1,31 @@
+use sycamore::futures::spawn_local;
 use sycamore::prelude::*;
 
-use crate::components::{AdminLayout, AdminRoute};
+use crate::common::Product;
+use crate::components::{AdminLayout, AdminRoute, Toast, ToastType};
 
 #[component]
 pub fn DashboardPage() -> View {
+    let apps = create_signal(Vec::<Product>::new());
+    let toast = create_signal(None::<Toast>);
+
+    spawn_local({
+        let apps = apps.clone();
+        async move {
+            match Product::load_all_products().await {
+                Ok(products) => {
+                    apps.set(products);
+                }
+                Err(e) => {
+                    toast.set(Some(Toast {
+                        message: format!("Failed to load products: {}", e),
+                        toast_type: ToastType::Error,
+                    }));
+                }
+            }
+        }
+    });
+
     view! {
         AdminLayout(current_route=AdminRoute::Dashboard, inner_view=view! {
             div(class="flex space-x-4 border-b border-gray-200") {

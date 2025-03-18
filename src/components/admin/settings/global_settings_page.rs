@@ -1,16 +1,10 @@
+use crate::common::{invoke_tauri, AppConfig};
 use crate::components::toast::{Toast, ToastNotification, ToastType};
-use crate::store::AppConfig;
 use serde_wasm_bindgen::from_value;
 use sycamore::prelude::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{Event, HtmlInputElement, HtmlSelectElement, SubmitEvent};
-
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "core"])]
-    async fn invoke(cmd: &str, args: JsValue) -> JsValue;
-}
 
 #[component]
 pub fn GlobalSettingsPage() -> View {
@@ -87,7 +81,8 @@ pub fn GlobalSettingsPage() -> View {
             let config = config.clone();
             let toast = toast.clone();
             spawn_local(async move {
-                let result = invoke("select_directory", JsValue::NULL).await;
+                let result = invoke_tauri("select_directory", JsValue::NULL).await;
+
                 console_log!("result: {:?}", result);
                 match from_value::<String>(result) {
                     Ok(path) => {

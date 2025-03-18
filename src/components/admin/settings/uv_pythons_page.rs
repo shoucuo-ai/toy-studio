@@ -1,15 +1,9 @@
 use serde::{Deserialize, Serialize};
-use serde_wasm_bindgen::{from_value, to_value};
 use sycamore::prelude::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
 
-
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "core"])]
-    async fn invoke(cmd: &str, args: JsValue) -> JsValue;
-}
+use crate::common::invoke_for_data;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 struct PythonVersionParts {
@@ -41,27 +35,18 @@ pub fn UVPythonsPage() -> View {
     spawn_local({
         let python_envs = python_envs.clone();
         async move {
-            match invoke("uv_get_python_envs", to_value(&()).unwrap()).await {
-                result => {
-                    if let Ok(envs_json) = from_value::<String>(result) {
-                        let envs: Result<Vec<PythonEnv>, serde_json::Error> =
-                            serde_json::from_str(&envs_json);
-                        match envs {
-                            Ok(envs) => {
-                                python_envs.set(envs);
-                            }
-                            Err(e) => {
-                                console_log!("error: {:?}", e);
-                            }
-                        }
-                    }
+            let result =
+                invoke_for_data::<Vec<PythonEnv>>("uv_get_python_envs", JsValue::NULL).await;
+
+            match result {
+                Ok(envs) => {
+                    python_envs.set(envs);
+                }
+                Err(e) => {
+                    console_log!("error: {:?}", e);
                 }
             }
         }
-    });
-
-    create_effect(move || {
-        console_log!("python_envs: {:?}", python_envs.get_clone());
     });
 
     view! {

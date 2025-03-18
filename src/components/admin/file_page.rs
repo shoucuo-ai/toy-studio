@@ -1,15 +1,12 @@
 use serde::{Deserialize, Serialize};
 use sycamore::prelude::*;
-use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
 
-use crate::{common::path_utils, components::{AdminLayout, AdminRoute}, store::AppConfig};
-
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = ["window", "__TAURI__", "core"])]
-    async fn invoke(cmd: &str, args: JsValue) -> JsValue;
-}
+use crate::{
+    common::AppConfig,
+    common::{invoke_tauri, path_utils},
+    components::{AdminLayout, AdminRoute},
+};
 
 #[derive(Serialize, Deserialize)]
 struct OpenDirectoryArgs<'a> {
@@ -31,7 +28,7 @@ pub fn FilePage() -> View {
         spawn_local(async move {
             let args = OpenDirectoryArgs { dir: &full_path };
             let args = serde_wasm_bindgen::to_value(&args).unwrap();
-            let value = invoke("open_directory", args).await;
+            let value = invoke_tauri("open_directory", args).await;
             console_log!("value: {:?}", value);
         });
     };

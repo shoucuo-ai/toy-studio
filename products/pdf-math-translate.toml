@@ -3,13 +3,12 @@ name = "PDF Math Translate"
 version = "1.0.0"
 description = "A tool for translating mathematical formulas in PDF documents"
 icon = "assets/icons/pdf-math.png"
-cover_image = "assets/covers/pdf-math-cover.png"
+cover_image = "public/640.png"
 package_type = "git"
 introduction = "Advanced PDF mathematical formula translation tool with OCR capabilities"
 service_notes = "Requires internet connection for initial model download"
-platforms = [ "windows", "macos", "ubuntu" ]
+platforms = ["windows", "macos", "ubuntu"]
 category = "document"
-status = "active"
 created_at = "2024-01-01"
 updated_at = "2024-03-15"
 
@@ -25,8 +24,17 @@ disk_space = "2GB"
 [download]
 git_url = "https://github.com/Byaidu/PDFMathTranslate"
 branch = "main"
-setup_instructions = "Run npm install && npm run build"
+python_version = "3.12"
 
 
-[command]
-start = "uv run pdf2zh -i -o ${output}/pdf2zh_files "
+[windows]
+startup = "uv run pdf2zh -i -o ${output}/pdf2zh_files "
+shutdown = ""
+
+[macos]
+startup = "uv run pdf2zh -i -o ${output}/pdf2zh_files "
+shutdown = ""
+
+[linux]
+startup = "uv run pdf2zh -i -o ${output}/pdf2zh_files "
+shutdown = ""
