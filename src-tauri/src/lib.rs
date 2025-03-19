@@ -35,7 +35,11 @@ pub fn run() {
             command::select_directory,
             command::open_directory,
             command::product_setup,
-            command::get_installed_product_list
+            command::get_installed_product_list,
+            command::product_startup,
+            command::open_product_directory,
+            command::product_reinstall,
+            command::product_uninstall,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

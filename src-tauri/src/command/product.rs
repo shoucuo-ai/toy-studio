@@ -1,14 +1,18 @@
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     fs::{self},
     path::{Path, PathBuf},
+    process::Command,
     sync::Mutex,
 };
 
 use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
 
-use crate::command::{get_product_bak_path, get_product_install_path, git_clone, uv_sync, uv_venv};
+use crate::{
+    command::{git_clone, uv_sync, uv_venv},
+    common::{split_args, template_replace, template_replace_single},
+};
 
 use super::config::get_app_config;
 
@@ -25,67 +29,67 @@ pub enum ProductStatus {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
-struct Product {
-    id: String,
-    name: String,
-    version: String,
-    description: String,
-    icon: String,
-    cover_image: String,
-    package_type: String,
-    introduction: String,
-    service_notes: String,
-    platforms: Vec<String>,
-    category: String,
-    status: Option<ProductStatus>,
-    created_at: String,
-    updated_at: String,
-    device_support: DeviceSupport,
-    requirements: Requirements,
-    download: Download,
-    windows: Windows,
-    macos: Macos,
-    linux: Linux,
-    publisher: Option<String>,
-    file_size: Option<i64>,
+pub struct Product {
+    pub id: String,
+    pub name: String,
+    pub version: String,
+    pub description: String,
+    pub icon: String,
+    pub cover_image: String,
+    pub package_type: String,
+    pub introduction: String,
+    pub service_notes: String,
+    pub platforms: Vec<String>,
+    pub category: String,
+    pub status: Option<ProductStatus>,
+    pub created_at: String,
+    pub updated_at: String,
+    pub device_support: DeviceSupport,
+    pub requirements: Requirements,
+    pub download: Download,
+    pub windows: Windows,
+    pub macos: Macos,
+    pub linux: Linux,
+    pub publisher: Option<String>,
+    pub file_size: Option<i64>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
-struct DeviceSupport {
-    cpu: bool,
-    nvidia: bool,
+pub struct DeviceSupport {
+    pub cpu: bool,
+    pub nvidia: bool,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
-struct Requirements {
-    ram: String,
-    vram: String,
-    disk_space: String,
+pub struct Requirements {
+    pub ram: String,
+    pub vram: String,
+    pub disk_space: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
-struct Download {
-    git_url: String,
-    branch: String,
-    python_version: String,
+pub struct Download {
+    pub git_url: String,
+    pub branch: String,
+    pub python_version: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
-struct Windows {
-    startup: String,
-    shutdown: String,
+pub struct Windows {
+    pub startup: String,
+    pub shutdown: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
-struct Macos {
-    startup: String,
-    shutdown: String,
+pub struct Macos {
+    pub startup: String,
+    pub shutdown: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
-struct Linux {
-    startup: String,
-    shutdown: String,
+pub struct Linux {
+    pub startup: String,
+    pub shutdown: String,
 }
 
 fn get_product_list(app_handle: &AppHandle) -> Result<Vec<Product>, String> {
@@ -94,7 +98,7 @@ fn get_product_list(app_handle: &AppHandle) -> Result<Vec<Product>, String> {
     println!("config:{:?}", config);
 
     let products_dir = config.get_products_dir();
-    println!("product dir:{}", products_dir);
+    println!("product dir:{:?}", products_dir);
     let product_files = fs::read_dir(&products_dir).map_err(|e| e.to_string())?;
 
     let mut products: Vec<Product> = Vec::new();
@@ -145,7 +149,7 @@ pub fn get_installed_product_list(app_handle: AppHandle) -> Result<String, Strin
     serde_json::to_string(&installed_products).map_err(|e| e.to_string())
 }
 
-fn parse_product_toml(product_file: &PathBuf) -> Result<Product, String> {
+pub fn parse_product_toml(product_file: &PathBuf) -> Result<Product, String> {
     let product_toml = fs::read_to_string(product_file).map_err(|e| e.to_string())?;
     let mut product: Product = toml::from_str(&product_toml).map_err(|e| e.to_string())?;
     product.id = product_file
@@ -160,21 +164,23 @@ fn parse_product_toml(product_file: &PathBuf) -> Result<Product, String> {
 pub fn product_setup(app_handle: AppHandle, file: String) -> Result<(), String> {
     println!("product_file:{}", file);
 
-    let product_dir = get_app_config(&app_handle)?.get_products_dir();
-    let product_file = PathBuf::from(product_dir).join(file);
+    let app_config = get_app_config(&app_handle)?;
+
+    let product_dir = app_config.get_products_dir();
+    let product_file = product_dir.join(file);
     let product = parse_product_toml(&product_file)?;
     let product_name = get_product_name(&product.id);
 
     println!("product:{:?}", product);
 
-    let install_dir = get_product_install_path(&app_handle).join(&product_name);
+    let install_dir = app_config.get_product_install_path().join(&product_name);
 
     fs::create_dir_all(&install_dir).map_err(|e| e.to_string())?;
     println!("install_dir:{:?}", &install_dir);
 
     let git_url = product.download.git_url;
     let branch = product.download.branch;
-    let bak_dir = get_product_bak_path(&app_handle);
+    let bak_dir = app_config.get_product_bak_path();
 
     git_clone(git_url, branch, &install_dir, &bak_dir)?;
     uv_venv(&install_dir, &product.download.python_version)?;
@@ -185,7 +191,109 @@ pub fn product_setup(app_handle: AppHandle, file: String) -> Result<(), String> 
     Ok(())
 }
 
-fn get_product_name(product_id: &str) -> String {
+#[tauri::command]
+pub fn product_reinstall(app_handle: AppHandle, file: String) -> Result<(), String> {
+    println!("product_reinstall:{}", file);
+
+    let app_config = get_app_config(&app_handle)?;
+
+    let product_dir = app_config.get_products_dir();
+    let product_file = product_dir.join(file);
+    let product = parse_product_toml(&product_file)?;
+    let product_name = get_product_name(&product.id);
+
+    println!("product:{:?}", product);
+
+    let install_dir = app_config.get_product_install_path().join(&product_name);
+
+    fs::remove_dir_all(&install_dir).map_err(|e| e.to_string())?;
+    fs::create_dir_all(&install_dir).map_err(|e| e.to_string())?;
+    println!("install_dir:{:?}", &install_dir);
+
+    let git_url = product.download.git_url;
+    let branch = product.download.branch;
+    let bak_dir = app_config.get_product_bak_path();
+
+    git_clone(git_url, branch, &install_dir, &bak_dir)?;
+    uv_venv(&install_dir, &product.download.python_version)?;
+    uv_sync(&install_dir)?;
+
+    APP_INSTALLED.lock().unwrap().insert(product.id);
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn product_uninstall(app_handle: AppHandle, file: String) -> Result<(), String> {
+    println!("product_uninstall:{}", file);
+
+    let app_config = get_app_config(&app_handle)?;
+
+    let product_dir = app_config.get_products_dir();
+    let product_file = product_dir.join(file);
+    let product = parse_product_toml(&product_file)?;
+    let product_name = get_product_name(&product.id);
+
+    println!("product:{:?}", product);
+
+    let install_dir = app_config.get_product_install_path().join(&product_name);
+
+    fs::remove_dir_all(&install_dir).map_err(|e| e.to_string())?;
+
+    APP_INSTALLED.lock().unwrap().remove(&product.id);
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn product_startup(app_handle: AppHandle, file: String) -> Result<String, String> {
+    println!("--------------------------------product_startup--------------------------------");
+    println!("product_file:{}", file);
+    let app_config = get_app_config(&app_handle)?;
+
+    let product_dir = app_config.get_products_dir();
+    let product_file = product_dir.join(file);
+    println!("abs product_file:{:?}", product_file);
+    let product = parse_product_toml(&product_file)?;
+    let product_name = get_product_name(&product.id);
+    println!("product_name:{}", product_name);
+
+    println!("product:{:?}", product);
+
+    let install_dir = app_config.get_product_install_path().join(&product_name);
+
+    println!("install_dir:{:?}", &install_dir);
+
+    let output_dir = app_config.get_output_path();
+    fs::create_dir_all(&output_dir).map_err(|e| e.to_string())?;
+    println!("output_dir:{:?}", &output_dir);
+
+    let startup = template_replace_single(
+        &product.windows.startup,
+        "output",
+        &output_dir.to_string_lossy().into_owned(),
+    );
+    println!("startup:{}", startup);
+
+    let mut args = split_args(&startup);
+    args.insert(0, "run".to_string());
+    println!("args:{:?}", args);
+
+    let output = Command::new("uv")
+        .current_dir(&install_dir)
+        .args(&args)
+        .output()
+        .map_err(|e| e.to_string())?;
+
+    println!("output:{:?}", &output);
+    if output.status.success() {
+        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    } else {
+        Err(String::from_utf8_lossy(&output.stderr).trim().to_string())
+    }
+}
+
+pub fn get_product_name(product_id: &str) -> String {
     let name = Path::new(product_id).file_stem();
     match name {
         Some(name) => name.to_string_lossy().to_string(),
@@ -194,7 +302,9 @@ fn get_product_name(product_id: &str) -> String {
 }
 
 pub fn init_installed_products(app_handle: &AppHandle) -> Result<(), String> {
-    let products_dir = get_product_install_path(app_handle);
+    let app_config = get_app_config(app_handle)?;
+
+    let products_dir = app_config.get_product_install_path();
     let product_files = fs::read_dir(&products_dir).map_err(|e| e.to_string())?;
 
     for product_file in product_files {

@@ -28,13 +28,13 @@ python_version = "3.12"
 
 
 [windows]
-startup = "uv run pdf2zh -i -o ${output}/pdf2zh_files "
+startup = "pdf2zh -i -o ${output}/pdf2zh_files "
 shutdown = ""
 
 [macos]
-startup = "uv run pdf2zh -i -o ${output}/pdf2zh_files "
+startup = "pdf2zh -i -o ${output}/pdf2zh_files "
 shutdown = ""
 
 [linux]
-startup = "uv run pdf2zh -i -o ${output}/pdf2zh_files "
+startup = "pdf2zh -i -o ${output}/pdf2zh_files "
 shutdown = ""

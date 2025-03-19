@@ -2,7 +2,10 @@ use std::{path::PathBuf, process::Command};
 use tauri::AppHandle;
 use tauri_plugin_dialog::DialogExt;
 
-use crate::common::is_wsl;
+use crate::{
+    command::{get_app_config, get_product_name, parse_product_toml},
+    common::is_wsl,
+};
 
 #[tauri::command]
 pub async fn select_directory(app_handle: AppHandle) -> Result<String, String> {
@@ -30,6 +33,29 @@ pub async fn open_directory(dir: &str) -> Result<(), String> {
         wsl_open_in_explorer(dir);
     } else {
         showfile::show_path_in_file_manager(dir);
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn open_product_directory(app_handle: AppHandle, file: String) -> Result<(), String> {
+    println!("product_file:{}", file);
+
+    let app_config = get_app_config(&app_handle)?;
+
+    let product_dir = app_config.get_products_dir();
+    let product_file = PathBuf::from(product_dir).join(file);
+    let product = parse_product_toml(&product_file)?;
+    let product_name = get_product_name(&product.id);
+
+    println!("product:{:?}", product);
+
+    let install_dir = app_config.get_product_install_path().join(&product_name);
+    println!("install_dir: {:?}", install_dir);
+    if is_wsl() {
+        wsl_open_in_explorer(&install_dir.to_string_lossy().into_owned());
+    } else {
+        showfile::show_path_in_file_manager(install_dir);
     }
     Ok(())
 }
