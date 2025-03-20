@@ -1,7 +1,7 @@
 use sycamore::futures::spawn_local;
 use sycamore::prelude::*;
 
-use crate::common::{invoke_for_string, Product};
+use crate::common::{invoke_for_string, invoke_tauri, Product};
 use crate::components::{AdminLayout, AdminRoute, Toast, ToastNotification, ToastType};
 
 #[component]
@@ -10,21 +10,22 @@ pub fn DashboardPage() -> View {
     let toast = create_signal(None::<Toast>);
     let menu_open = create_signal(false);
 
-    spawn_local({
+    let load_products = async move || {
         let apps = apps.clone();
-        async move {
-            match Product::load_all_products().await {
-                Ok(products) => {
-                    apps.set(products);
-                }
-                Err(e) => {
-                    toast.set(Some(Toast {
-                        message: format!("Failed to load products: {}", e),
-                        toast_type: ToastType::Error,
-                    }));
-                }
+        match Product::load_all_products().await {
+            Ok(products) => {
+                apps.set(products);
+            }
+            Err(e) => {
+                toast.set(Some(Toast {
+                    message: format!("Failed to load products: {}", e),
+                    toast_type: ToastType::Error,
+                }));
             }
         }
+    };
+    spawn_local(async move {
+        load_products().await;
     });
 
     let handle_launch_product = move |product_id: String| {
@@ -37,22 +38,20 @@ pub fn DashboardPage() -> View {
 
             match args {
                 Err(e) => {
-                    console_log!("Failed to parse response: {:?}", e);
+                    let message = format!("Failed to parse args: {:?}", e);
+                    toast.set(Some(Toast {
+                        message: message,
+                        toast_type: ToastType::Error,
+                    }));
                 }
-                Ok(args) => match invoke_for_string("product_startup", args).await {
-                    Some(_msg) => {
-                        toast.set(Some(Toast {
-                            message: "Product launched successfully".to_string(),
-                            toast_type: ToastType::Success,
-                        }));
-                    }
-                    None => {
-                        toast.set(Some(Toast {
-                            message: "Failed to launch product".to_string(),
-                            toast_type: ToastType::Error,
-                        }));
-                    }
-                },
+                Ok(args) => {
+                    let _msg = invoke_tauri("product_startup", args).await;
+                    toast.set(Some(Toast {
+                        message: "Product launched successfully".to_string(),
+                        toast_type: ToastType::Success,
+                    }));
+                    load_products().await;
+                }
             }
         });
     };
@@ -95,7 +94,11 @@ pub fn DashboardPage() -> View {
 
             match args {
                 Err(e) => {
-                    console_log!("Failed to parse args: {:?}", e);
+                    let message = format!("Failed to parse args: {:?}", e);
+                    toast.set(Some(Toast {
+                        message: message,
+                        toast_type: ToastType::Error,
+                    }));
                 }
                 Ok(args) => match invoke_for_string("uninstall_product", args).await {
                     Some(_) => {
@@ -125,7 +128,11 @@ pub fn DashboardPage() -> View {
 
             match args {
                 Err(e) => {
-                    console_log!("Failed to parse args: {:?}", e);
+                    let message = format!("Failed to parse args: {:?}", e);
+                    toast.set(Some(Toast {
+                        message: message,
+                        toast_type: ToastType::Error,
+                    }));
                 }
                 Ok(args) => match invoke_for_string("reinstall_product", args).await {
                     Some(_) => {
@@ -155,7 +162,11 @@ pub fn DashboardPage() -> View {
 
             match args {
                 Err(e) => {
-                    console_log!("Failed to parse args: {:?}", e);
+                    let message = format!("Failed to parse args: {:?}", e);
+                    toast.set(Some(Toast {
+                        message: message,
+                        toast_type: ToastType::Error,
+                    }));
                 }
                 Ok(args) => match invoke_for_string("offline_import_product", args).await {
                     Some(_) => {
@@ -183,12 +194,12 @@ pub fn DashboardPage() -> View {
                     "Dashboard"
                 }
             }
-            div(class="bg-gray-100 p-8") {
+            div(class="bg-gray-100 p-4") {
                 Keyed(list=apps, view=move |app|{
                     let app_id = app.id.clone();
                     let app_id_for_menu = app.id.clone();
                     view! {
-                        div(class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow ") {
+                        div(class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow ") {
                                 div(class="flex flex-row justify-between items-center gap-4") {
                                     div(class="flex-grow") {
                                         h3(class="text-lg font-semibold text-gray-800") { (app.name) }
@@ -252,6 +263,15 @@ pub fn DashboardPage() -> View {
                                             view! {}
                                         })
                                     }
+                                    (if let Some(true) = app.running {
+                                        view! {
+                                            "Running"
+                                        }
+                                    } else {
+                                        view! {
+                                            "Not Running"
+                                        }
+                                    })
                                     button(
                                         class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm transition-colors",
                                         on:click=move |_| {

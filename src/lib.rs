@@ -1,6 +1,6 @@
 pub mod app;
-pub mod components;
 pub mod common;
+pub mod components;
 
 pub use app::App;
 use components::TitleBar;

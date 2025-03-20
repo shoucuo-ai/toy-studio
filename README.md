@@ -8,26 +8,24 @@ This template should help get you started developing with Tauri and Sycamore.
 
 [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer).
 
-## Features
-
-### PDF Document Translation
-
-### Image Watermark Removal
 
 ## Develop
+
+### 前置安装
+
+- Git
+- uv
 
 ### start
 
 ```bash
+cargo install wasm-bindgen-cli
 cargo tauri dev
 ```
 
 ## 产品特性
 
 ### PDF 文档翻译
-
-
-
 
 {
   "name": "PDFMathTranslate",
@@ -49,7 +47,4 @@ https://github.com/zuruoke/watermark-removal
     - Windows：`%LOCALAPPDATA%\uv\cache`
 
 ## TODO 确认
-
-### 当前浏览器、当前Tab激活
-
 

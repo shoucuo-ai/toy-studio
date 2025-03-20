@@ -1,5 +1,5 @@
 use crate::components::{
-    admin::{app_store_page::AppStorePage, dashboard_page::*},
+    pages::{app_store_page::AppStorePage, dashboard_page::*},
     file_page::FilePage,
     settings_page::SettingsPage,
 };

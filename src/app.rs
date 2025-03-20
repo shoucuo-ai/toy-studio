@@ -1,14 +1,6 @@
-use serde::{Deserialize, Serialize};
-use sycamore:: prelude::*;
+use crate::{common::AppConfig, components::AdminRouter};
+use sycamore::prelude::*;
 use wasm_bindgen_futures::spawn_local;
-use crate::{components::AdminRouter, common::AppConfig};
-
-
-
-#[derive(Serialize, Deserialize)]
-struct GreetArgs<'a> {
-    name: &'a str,
-}
 
 #[component]
 pub fn App() -> View {
@@ -19,7 +11,7 @@ pub fn App() -> View {
         let config = config.clone();
         async move {
             let data = AppConfig::load().await;
-            match  data {
+            match data {
                 Ok(loaded_config) => {
                     config.set(loaded_config);
                 }
