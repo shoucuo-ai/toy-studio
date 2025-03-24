@@ -11,6 +11,7 @@ pub struct AppConfig {
     pub project_root_dir: String,
     pub enable_external_uv: bool,
     pub uv_cache_dir: String,
+    pub dev_mode: Option<bool>,
 }
 
 impl Default for AppConfig {
@@ -20,6 +21,7 @@ impl Default for AppConfig {
             project_root_dir: "./".to_string(),
             enable_external_uv: false,
             uv_cache_dir: "./cache".to_string(),
+            dev_mode: Some(false),
         }
     }
 }
@@ -71,7 +73,7 @@ pub struct Product {
 
 impl Product {
     pub async fn load_all_products() -> Result<Vec<Product>, String> {
-        invoke_for_data::<Vec<Product>>("get_all_product_list", JsValue::NULL).await
+        invoke_for_data::<Vec<Product>>("get_meta_product_list", JsValue::NULL).await
     }
 
     pub async fn load_installed_products() -> Result<Vec<Product>, String> {

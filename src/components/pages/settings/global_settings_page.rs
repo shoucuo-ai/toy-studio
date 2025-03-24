@@ -74,6 +74,16 @@ pub fn GlobalSettingsPage() -> View {
         }
     };
 
+    let update_dev_mode = {
+        let config = config.clone();
+        move |ev: Event| {
+            let target: HtmlInputElement = ev.target().unwrap().dyn_into().unwrap();
+            let mut new_config = config.get_clone();
+            new_config.dev_mode = Some(target.checked());
+            config.set(new_config);
+        }
+    };
+
     let browse_directory = {
         let config = config.clone();
         let toast = toast.clone();
@@ -160,6 +170,23 @@ pub fn GlobalSettingsPage() -> View {
                             r#for="external-uv"
                         ) {
                             "Enable External UV"
+                        }
+                    }
+
+                     // 开发者模式
+                     div(class="flex items-center") {
+                        input(
+                            class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded",
+                            r#type="checkbox",
+                            id="dev-mode",
+                            checked=create_memo(move || config.get_clone().dev_mode == Some(true)),
+                            on:change=update_dev_mode
+                        )
+                        label(
+                            class="ml-2 block text-sm text-gray-700",
+                            r#for="dev-mode"
+                        ) {
+                            "Developer Mode"
                         }
                     }
                 }

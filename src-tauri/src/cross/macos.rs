@@ -5,6 +5,6 @@ pub fn run_command<P: AsRef<std::path::Path>>(
     args: &Vec<String>,
     name: &str,
     product_id: &str,
-) -> Result<(), String> {
+) -> Result<std::sync::Arc<std::sync::Mutex<std::process::Child>>, String> {
     crate::run_command_common(current_dir, program, args, name, product_id)
 }

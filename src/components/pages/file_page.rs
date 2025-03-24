@@ -137,6 +137,15 @@ pub fn FilePage() -> View {
                 } else  if active_tab.get_clone() == 1 {
                     // System Files Tab Content
                     view! {
+                        // Config Directory
+                        div(
+                            class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 p-4 cursor-pointer",
+                            on:click=move |_| open_directory("config", false)
+                        ) {
+                            h3(class="text-lg font-semibold text-gray-700 mb-2") { "Config" }
+                            p(class="text-sm text-gray-500") { "System config files" }
+                        }
+
                         // Data Directory
                         div(
                             class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 p-4 cursor-pointer",
@@ -162,15 +171,6 @@ pub fn FilePage() -> View {
                         ) {
                             h3(class="text-lg font-semibold text-gray-700 mb-2") { "Log" }
                             p(class="text-sm text-gray-500") { "System log files" }
-                        }
-
-                        // Config Directory
-                        div(
-                            class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 p-4 cursor-pointer",
-                            on:click=move |_| open_directory("config", false)
-                        ) {
-                            h3(class="text-lg font-semibold text-gray-700 mb-2") { "Config" }
-                            p(class="text-sm text-gray-500") { "System config files" }
                         }
 
                         // Local Data Directory

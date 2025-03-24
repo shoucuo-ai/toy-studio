@@ -18,7 +18,7 @@ fn execute_git_command<P: AsRef<Path>>(dir: P, args: &[&str]) -> Result<String, 
 }
 
 /// 检查目录是否是git仓库
-fn is_git_repository<P: AsRef<Path>>(path: P) -> bool {
+pub fn is_git_repository<P: AsRef<Path>>(path: P) -> bool {
     Command::new("git")
         .current_dir(path)
         .args(&["rev-parse", "--git-dir"])

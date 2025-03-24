@@ -1,8 +1,6 @@
-# Tauri + Sycamore
+# ToyStudio
 
 当前项目基于 Tauri 框架，使用 Web 框架 Sycamore 和 CSS 框架 tailwind css。
-
-This template should help get you started developing with Tauri and Sycamore.
 
 ## Recommended IDE Setup
 
@@ -25,14 +23,7 @@ cargo tauri dev
 
 ## 产品特性
 
-### PDF 文档翻译
 
-{
-  "name": "PDFMathTranslate",
-  "git": "https://github.com/Byaidu/PDFMathTranslate",
-  ""
-
-}
 
 ### 图片去水印
 
@@ -47,4 +38,10 @@ https://github.com/zuruoke/watermark-removal
     - Windows：`%LOCALAPPDATA%\uv\cache`
 
 ## TODO 确认
+
+
+### 周期扫描已安装应用
+
+
+
 

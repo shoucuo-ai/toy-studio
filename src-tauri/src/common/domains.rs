@@ -13,9 +13,15 @@ pub struct AppConfig {
     pub project_root_dir: String,
     pub enable_external_uv: bool,
     pub uv_cache_dir: String,
+    pub dev_mode: Option<bool>,
 }
 
 impl AppConfig {
+    pub fn dev_mode(&self) -> bool {
+        Some(true) == self.dev_mode
+    }
+
+    /// 默认配置，安装后初始化配置文件
     pub fn default(app_handle: &AppHandle) -> Self {
         let dir = app_handle.path().app_data_dir();
         let dir = dir.unwrap_or_else(|_| PathBuf::from(""));
@@ -26,40 +32,47 @@ impl AppConfig {
             project_root_dir: dir.to_string(),
             enable_external_uv: true,
             uv_cache_dir: cache_dir,
+            dev_mode: Some(false),
         }
     }
 
-    pub fn get_products_dir(&self) -> PathBuf {
+    /// 获取产品元数据目录
+    pub fn get_meta_products_dir(&self) -> PathBuf {
         let dir = PathBuf::from(&self.project_root_dir);
         let dir = dir.join("./.local/products");
         dir
     }
 
-    pub fn get_product_dir(&self, product_id: &str) -> PathBuf {
+    /// 获取产品元数据目录
+    pub fn get_meta_product_dir(&self, product_id: &str) -> PathBuf {
         let dir = PathBuf::from(&self.project_root_dir);
         let dir = dir.join("./.local/products");
         let dir = dir.join(product_id);
         dir
     }
 
+    /// 获取产品安装目录
     pub fn get_product_install_path(&self) -> PathBuf {
         let dir = PathBuf::from(&self.project_root_dir);
         let dir = dir.join("./apps");
         dir
     }
 
+    /// 获取产品备份目录
     pub fn get_product_bak_path(&self) -> PathBuf {
         let dir = PathBuf::from(&self.project_root_dir);
         let dir = dir.join("./.local/bak");
         dir
     }
 
+    /// 获取输出目录
     pub fn get_output_path(&self) -> PathBuf {
         let dir = PathBuf::from(&self.project_root_dir);
         let dir = dir.join("./output");
         dir
     }
 
+    /// 获取配置文件路径
     pub fn get_config_file_path(app_handle: &AppHandle) -> PathBuf {
         let config_dir = app_handle.path().app_config_dir().unwrap();
         fs::create_dir_all(&config_dir).unwrap();
@@ -68,6 +81,7 @@ impl AppConfig {
         dist
     }
 
+    /// 获取应用配置
     pub fn get_app_config(app_handle: &AppHandle) -> Result<AppConfig, String> {
         let config_path = Self::get_config_file_path(&app_handle);
         if !config_path.exists() {
@@ -85,10 +99,12 @@ impl AppConfig {
             Err(err) => return Err(err.to_string()),
         }
     }
-    pub fn get_product_list(&self) -> Result<Vec<Product>, String> {
+
+    /// 获取产品列表，补充安装状态和运行状态
+    pub fn get_meta_product_list(&self) -> Result<Vec<Product>, String> {
         println!("config:{:?}", self);
 
-        let products_dir = self.get_products_dir();
+        let products_dir = self.get_meta_products_dir();
         println!("product dir:{:?}", products_dir);
         let product_files = fs::read_dir(&products_dir).map_err(|e| e.to_string())?;
 
@@ -185,6 +201,7 @@ pub struct Product {
 }
 
 impl Product {
+    /// 解析产品配置文件
     pub fn parse_product_toml(product_file: &PathBuf) -> Result<Product, String> {
         let product_toml = fs::read_to_string(product_file).map_err(|e| e.to_string())?;
 
@@ -198,6 +215,7 @@ impl Product {
         Ok(product)
     }
 
+    /// 获取产品启动命令：根据操作系统获取对应的启动命令，并替换输出目录
     pub fn get_startup_command(&self, output_dir: &PathBuf) -> Result<String, String> {
         let startup = match std::env::consts::OS {
             "windows" => &self.windows.startup.clone(),
@@ -218,38 +236,52 @@ impl Product {
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct DeviceSupport {
+    /// 支持CPU
     pub cpu: bool,
+    /// 支持NVIDIA
     pub nvidia: bool,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct Requirements {
+    /// 支持内存
     pub ram: String,
+    /// 支持显存
     pub vram: String,
+    /// 支持磁盘空间
     pub disk_space: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct Download {
+    /// 产品git仓库地址
     pub git_url: String,
+    /// 产品git分支
     pub branch: String,
+    /// 产品python版本
     pub python_version: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct Windows {
+    /// 产品Windows启动命令
     pub startup: String,
+    /// 产品Windows关闭命令
     pub shutdown: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct Macos {
+    /// 产品MacOS启动命令
     pub startup: String,
+    /// 产品MacOS关闭命令
     pub shutdown: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct Linux {
+    /// 产品Linux启动命令
     pub startup: String,
+    /// 产品Linux关闭命令
     pub shutdown: String,
 }

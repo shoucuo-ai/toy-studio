@@ -46,7 +46,7 @@ pub fn AppStorePage() -> View {
         let toast = toast.clone();
         spawn_local(async move {
             let json = serde_json::json!({
-                "file": app.id.clone()
+                "pid": app.id.clone()
             });
             let args = serde_wasm_bindgen::to_value(&json);
             match args {
@@ -59,7 +59,7 @@ pub fn AppStorePage() -> View {
                 }
                 Ok(args) => {
                     console_log!("args:{:?}", args);
-                    let result = invoke_tauri("product_setup", args).await;
+                    let result = invoke_tauri("product_install", args).await;
                     match result.as_string() {
                         None => {
                             console_log!("Failed to get product list");

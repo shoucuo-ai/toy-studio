@@ -12,7 +12,7 @@ pub fn DashboardPage() -> View {
 
     let load_products = async move || {
         let apps = apps.clone();
-        match Product::load_all_products().await {
+        match Product::load_installed_products().await {
             Ok(products) => {
                 apps.set(products);
             }
@@ -32,7 +32,7 @@ pub fn DashboardPage() -> View {
         let toast = toast.clone();
         spawn_local(async move {
             let json = serde_json::json!({
-                "file": product_id.clone()
+                "pid": product_id.clone()
             });
             let args = serde_wasm_bindgen::to_value(&json);
 
@@ -61,7 +61,7 @@ pub fn DashboardPage() -> View {
         menu_open.clone().set(false);
         spawn_local(async move {
             let json: serde_json::Value = serde_json::json!({
-                "file": product_id.clone()
+                "pid": product_id.clone()
             });
             let args = serde_wasm_bindgen::to_value(&json);
 
@@ -88,7 +88,7 @@ pub fn DashboardPage() -> View {
         let toast = toast.clone();
         spawn_local(async move {
             let json = serde_json::json!({
-                "product_id": product_id.clone()
+                "pid": product_id.clone()
             });
             let args = serde_wasm_bindgen::to_value(&json);
 
@@ -122,7 +122,7 @@ pub fn DashboardPage() -> View {
         let toast = toast.clone();
         spawn_local(async move {
             let json = serde_json::json!({
-                "product_id": product_id.clone()
+                "pid": product_id.clone()
             });
             let args = serde_wasm_bindgen::to_value(&json);
 
@@ -156,7 +156,7 @@ pub fn DashboardPage() -> View {
         let toast = toast.clone();
         spawn_local(async move {
             let json = serde_json::json!({
-                "product_id": product_id.clone()
+                "pid": product_id.clone()
             });
             let args = serde_wasm_bindgen::to_value(&json);
 
@@ -265,22 +265,23 @@ pub fn DashboardPage() -> View {
                                     }
                                     (if let Some(true) = app.running {
                                         view! {
-                                            "Running"
+                                            div(class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm transition-colors") {
+                                                "Running"
+                                            }
                                         }
                                     } else {
                                         view! {
-                                            "Not Running"
+                                            button(
+                                                class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm transition-colors",
+                                                on:click=move |_| {
+                                                    let product_id = app_id.clone();
+                                                    handle_launch_product(product_id);
+                                                }
+                                            ) {
+                                                "Launch"
+                                            }
                                         }
                                     })
-                                    button(
-                                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md text-sm transition-colors",
-                                        on:click=move |_| {
-                                            let product_id = app_id.clone();
-                                            handle_launch_product(product_id);
-                                        }
-                                    ) {
-                                        "Launch"
-                                    }
                                 }
                             }
                         }

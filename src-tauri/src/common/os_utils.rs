@@ -1,7 +1,7 @@
 use std::{
     io::{BufRead, BufReader},
     path::Path,
-    process::{Command, Stdio},
+    process::{Child, Command, Stdio},
     sync::{Arc, Mutex},
     thread,
 };
@@ -39,8 +39,8 @@ pub fn run_command_common<P: AsRef<Path>>(
     program: &str,
     args: &Vec<String>,
     name: &str,
-    product_id: &str,
-) -> Result<(), String> {
+    _pid: &str,
+) -> Result<Arc<Mutex<Child>>, String> {
     let child = Command::new(program)
         .current_dir(current_dir)
         .args(args)
@@ -48,6 +48,8 @@ pub fn run_command_common<P: AsRef<Path>>(
         .stdout(Stdio::piped())
         .spawn()
         .map_err(|e| e.to_string())?;
+    let sub_process_id = child.id();
+    println!("sub_process_id:{}", sub_process_id);
 
     let child = Arc::new(Mutex::new(child));
     let work_thread = thread::Builder::new()
@@ -68,14 +70,7 @@ pub fn run_command_common<P: AsRef<Path>>(
         }
     });
 
-    let sub_process_id = child.lock().unwrap().id();
-    println!("sub_process_id:{}", sub_process_id);
-
-    APP_INSTALLED
-        .lock()
-        .unwrap()
-        .insert(product_id.to_string(), Some(child));
-    Ok(())
+    Ok(child)
 }
 
 pub fn get_file_name_without_suffix(file_path: &str) -> String {
