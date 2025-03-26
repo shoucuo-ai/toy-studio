@@ -24,6 +24,7 @@ lazy_static! {
 /// 获取所有产品列表, 包括已安装和未安装的产品
 #[tauri::command]
 pub fn get_meta_product_list(app_handle: AppHandle) -> Result<String, String> {
+    println!("--------------------------------get_meta_product_list--------------------------------");
     let app_config = AppConfig::get_app_config(&app_handle)?;
     let products = app_config.get_meta_product_list()?;
     serde_json::to_string(&products).map_err(|e| e.to_string())

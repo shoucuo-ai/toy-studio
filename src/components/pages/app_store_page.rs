@@ -306,15 +306,22 @@ pub fn AppStorePage() -> View {
                                 button(on:click=close_modal, class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300") {
                                     "Close"
                                 }
-                                button(
-                                    on:click=move |_| {
-                                        let app = app_clone.clone();
-                                        handle_install(app);
-                                    },
-                                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                                ) {
-                                    "Install"
-                                }
+                                (if let Some(true) = app.install {
+                                    view! {}
+                                } else {
+                                    view! {
+                                        button(
+                                            on:click=move |_| {
+                                                let app = app_clone.clone();
+                                                handle_install(app);
+                                            },
+                                            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                        ) {
+                                            "Install"
+                                        }
+                                    }
+                                })
+
                             }
                         }
                     } else {

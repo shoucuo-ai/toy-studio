@@ -123,29 +123,26 @@ impl AppConfig {
                             println!("product_file parse error:{}", err);
                         }
                         Ok(mut product) => {
-                            if let Ok(child) = APP_INSTALLED.lock() {
-                                if let Some(child) = child.get(&product.id) {
+                            if let Ok(map) = APP_INSTALLED.lock() {
+                                if map.contains_key(&product.id) {
+                                    product.install = Some(true);
+                                } else {
+                                    product.install = Some(false);
+                                }
+                                product.running = Some(false);
+                                if let Some(child) = map.get(&product.id) {
                                     if let Some(child) = child {
                                         product.install = Some(true);
                                         if let Ok(mut child) = child.lock() {
                                             if let Ok(None) = child.try_wait() {
                                                 product.running = Some(true);
-                                            } else {
-                                                product.running = None;
                                             }
-                                        } else {
-                                            product.running = None;
                                         }
-                                    } else {
-                                        product.running = None;
                                     }
-                                } else {
-                                    product.install = None;
-                                    product.running = None;
                                 }
                             } else {
-                                product.install = None;
-                                product.running = None;
+                                product.install = Some(false);
+                                product.running = Some(false);
                             }
                             products.push(product);
                         }
