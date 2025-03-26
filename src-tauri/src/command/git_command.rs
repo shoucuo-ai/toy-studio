@@ -3,7 +3,11 @@ use std::process::Command;
 
 /// 执行git命令并返回结果
 fn execute_git_command<P: AsRef<Path>>(dir: P, args: &[&str]) -> Result<String, String> {
-    println!("execute_git_command:cd {} && git {:?}", dir.as_ref().to_string_lossy(), args);
+    println!(
+        "execute_git_command:cd {} && git {:?}",
+        dir.as_ref().to_string_lossy(),
+        args
+    );
     let output = Command::new("git")
         .current_dir(dir)
         .args(args)

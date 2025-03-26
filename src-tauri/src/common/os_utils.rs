@@ -1,12 +1,8 @@
 use std::{
-    io::{BufRead, BufReader},
     path::Path,
     process::{Child, Command, Stdio},
     sync::{Arc, Mutex},
-    thread,
 };
-
-use crate::APP_INSTALLED;
 
 pub fn is_wsl() -> bool {
     match std::env::consts::OS {
@@ -38,37 +34,27 @@ pub fn run_command_common<P: AsRef<Path>>(
     current_dir: P,
     program: &str,
     args: &Vec<String>,
-    name: &str,
+    _name: &str,
     _pid: &str,
 ) -> Result<Arc<Mutex<Child>>, String> {
+    let current_dir = current_dir
+        .as_ref()
+        .canonicalize()
+        .map_err(|e| e.to_string())?;
+
     let child = Command::new(program)
         .current_dir(current_dir)
         .args(args)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
         .spawn()
         .map_err(|e| e.to_string())?;
+
     let sub_process_id = child.id();
     println!("sub_process_id:{}", sub_process_id);
 
     let child = Arc::new(Mutex::new(child));
-    let work_thread = thread::Builder::new()
-        .name(name.to_string())
-        .stack_size(1024 * 4);
-    let child_spawn = child.clone();
-    let name = name.to_string();
-    let _handle = work_thread.spawn(move || {
-        if let Some(stdout) = child_spawn.lock().unwrap().stdout.take() {
-            let reader = BufReader::new(stdout);
-            for line in reader.lines() {
-                println!("Output: {}", line.expect("Failed to read line"));
-                if let Ok(Some(status)) = child_spawn.lock().unwrap().try_wait() {
-                    println!("child[{}] exit status: {:?}", name, status);
-                    break;
-                }
-            }
-        }
-    });
 
     Ok(child)
 }

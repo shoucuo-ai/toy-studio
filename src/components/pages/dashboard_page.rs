@@ -24,6 +24,9 @@ pub fn DashboardPage() -> View {
             }
         }
     };
+    create_effect(move || {
+        console_log!("create_effect apps = {:?}", apps.get_clone());
+    });
     spawn_local(async move {
         load_products().await;
     });
@@ -195,19 +198,20 @@ pub fn DashboardPage() -> View {
                 }
             }
             div(class="bg-gray-100 p-4") {
-                Keyed(list=apps, view=move |app|{
-                    let app_id = app.id.clone();
-                    let app_id_for_menu = app.id.clone();
-                    view! {
-                        div(class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow ") {
+                Keyed(
+                    list=apps,
+                    key=|app| app.id.clone(),
+                    view=move |app|{
+                        let app_id = app.id.clone();
+                        let app_id_for_menu = app.id.clone();
+                        view! {
+                            div(class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow ") {
                                 div(class="flex flex-row justify-between items-center gap-4") {
                                     div(class="flex-grow") {
                                         h3(class="text-lg font-semibold text-gray-800") { (app.name) }
                                         p(class="text-sm text-gray-600 mt-1") { (app.description) }
                                     }
                                     div(class="relative") {
-
-
                                         button(
                                             class="text-gray-500 hover:text-gray-700 text-sm",
                                             on:click=move |_| menu_open.set(!menu_open.get())
@@ -286,7 +290,6 @@ pub fn DashboardPage() -> View {
                             }
                         }
                     },
-                    key=|app| app.id.clone(),
                 )
             }
         })

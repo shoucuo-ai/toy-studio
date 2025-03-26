@@ -216,10 +216,12 @@ pub fn product_startup(app_handle: AppHandle, pid: String) -> Result<(), String>
     let mut args = split_args(&startup);
     args.insert(0, "run".to_string());
     println!("args:{:?}", args);
+
+
     let child = crate::run_command(install_dir, "uv", &args, &product_name, &product.id)?;
 
     APP_INSTALLED.lock().unwrap().insert(pid, Some(child));
-
+    println!("APP_INSTALLED:{}", APP_INSTALLED.lock().unwrap().len());
     Ok(())
 }
 
