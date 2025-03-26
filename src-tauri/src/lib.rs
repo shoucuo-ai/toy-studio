@@ -34,6 +34,7 @@ pub fn run() {
             let app_handle = app.handle();
             let _ = init_installed_products(&app_handle);
             let _ = init_meta_products(&app_handle);
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -57,3 +58,4 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+

@@ -24,10 +24,13 @@ pub fn FilePage() -> View {
             } else {
                 "open_system_directory"
             };
-            let args = OpenDirectoryArgs { dir: dir };
-            let args = serde_wasm_bindgen::to_value(&args).unwrap();
-            let value = invoke_tauri(command, args).await;
-            console_log!("value: {:?}", value);
+            let args = OpenDirectoryArgs { dir: dir.clone() };
+            if let Ok(args) = serde_wasm_bindgen::to_value(&args) {
+                let value = invoke_tauri(command, args).await;
+                console_log!("value: {:?}", value);
+            } else {
+                console_log!("open error: {:?}", dir);
+            }
         });
     };
 

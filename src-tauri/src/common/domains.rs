@@ -74,7 +74,7 @@ impl AppConfig {
 
     /// 获取配置文件路径
     pub fn get_config_file_path(app_handle: &AppHandle) -> PathBuf {
-        let config_dir = app_handle.path().app_config_dir().unwrap();
+        let config_dir: PathBuf = app_handle.path().app_config_dir().unwrap();
         fs::create_dir_all(&config_dir).unwrap();
         let dist = config_dir.join("config.json");
         println!("config_dir: {:?}", dist);
@@ -123,15 +123,24 @@ impl AppConfig {
                             println!("product_file parse error:{}", err);
                         }
                         Ok(mut product) => {
-                            if let Some(x) = APP_INSTALLED.lock().unwrap().get(&product.id) {
-                                product.install = Some(true);
-                                if let Some(child) = x {
-                                    if let Ok(None) = child.lock().unwrap().try_wait() {
-                                        product.running = Some(true);
+                            if let Ok(child) = APP_INSTALLED.lock() {
+                                if let Some(child) = child.get(&product.id) {
+                                    if let Some(child) = child {
+                                        product.install = Some(true);
+                                        if let Ok(mut child) = child.lock() {
+                                            if let Ok(None) = child.try_wait() {
+                                                product.running = Some(true);
+                                            } else {
+                                                product.running = None;
+                                            }
+                                        } else {
+                                            product.running = None;
+                                        }
                                     } else {
                                         product.running = None;
                                     }
                                 } else {
+                                    product.install = None;
                                     product.running = None;
                                 }
                             } else {
@@ -203,15 +212,14 @@ pub struct Product {
 impl Product {
     /// 解析产品配置文件
     pub fn parse_product_toml(product_file: &PathBuf) -> Result<Product, String> {
-        let product_toml = fs::read_to_string(product_file).map_err(|e| e.to_string())?;
-
-        let mut product: Product = toml::from_str(&product_toml).map_err(|e| e.to_string())?;
-
-        product.id = product_file
+        let pid = product_file
             .file_name()
-            .unwrap()
+            .ok_or("Product ID is not found".to_string())?
             .to_string_lossy()
             .to_string();
+        let product_toml = fs::read_to_string(product_file).map_err(|e| e.to_string())?;
+        let mut product: Product = toml::from_str(&product_toml).map_err(|e| e.to_string())?;
+        product.id = pid;
         Ok(product)
     }
 

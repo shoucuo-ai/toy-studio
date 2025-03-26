@@ -65,8 +65,11 @@ pub fn UVSettingsPage() -> View {
     };
 
     let handle_input = move |event: Event| {
-        let target: HtmlInputElement = event.target().unwrap().dyn_into().unwrap();
-        cache_dir.set(target.value());
+        if let Some(target) = event.target() {
+            if let Ok(target) = target.dyn_into::<HtmlInputElement>() {
+                cache_dir.set(target.value());
+            }
+        }
     };
 
     create_effect(move || {

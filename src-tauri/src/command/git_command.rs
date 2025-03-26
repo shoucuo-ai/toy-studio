@@ -50,7 +50,7 @@ fn update_repository<P: AsRef<Path>>(path: P) -> Result<String, String> {
 }
 
 /// 克隆git仓库
-fn clone_repository<P: AsRef<Path>>(url: &str, branch: String, path: P) -> Result<String, String> {
+fn clone_repository<P: AsRef<Path>>(url: &str, branch: &str, path: P) -> Result<String, String> {
     println!("clone_repository:{}", path.as_ref().to_string_lossy());
     execute_git_command(
         &Path::new("."),
@@ -81,8 +81,8 @@ fn verify_remote_url<P: AsRef<Path>>(path: P, expected_url: &str) -> Result<(), 
 }
 
 pub fn git_clone<P: AsRef<Path>>(
-    url: String,
-    branch: String,
+    url: &str,
+    branch: &str,
     path: P,
     bak: P,
 ) -> Result<String, String> {
@@ -92,13 +92,13 @@ pub fn git_clone<P: AsRef<Path>>(
         println!("path exists:{}", path.display());
         if !is_git_repository(&path) {
             let _ = move_to_bak(&path, &bak);
-            clone_repository(&url, branch, path)
+            clone_repository(url, &branch, path)
         } else {
-            verify_remote_url(&path, &url)?;
+            verify_remote_url(&path, url)?;
             update_repository(&path)
         }
     } else {
-        clone_repository(&url, branch, &path)
+        clone_repository(url, &branch, &path)
     }
 }
 fn move_to_bak<P: AsRef<Path>>(from: P, to: P) -> Result<(), String> {

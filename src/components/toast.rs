@@ -13,10 +13,7 @@ pub struct Toast {
 }
 
 #[component(inline_props)]
-pub fn ToastNotification(
-    toast: Signal<Option<Toast>>,
-    duration_ms: Option<u32>,
-) -> View  {
+pub fn ToastNotification(toast: Signal<Option<Toast>>, duration_ms: Option<u32>) -> View {
     let visible = create_signal(false);
 
     create_effect(move || {
@@ -49,10 +46,10 @@ pub fn ToastNotification(
     };
 
     view! {
-        (if toast.get_clone().is_some() {
+        (if let Some(toast) = toast.get_clone() {
             view! {
                 div(class=toast_class) {
-                    (toast.get_clone().as_ref().unwrap().message.clone())
+                    (toast.message.clone())
                 }
             }
         } else {

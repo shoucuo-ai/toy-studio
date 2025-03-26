@@ -47,40 +47,52 @@ pub fn GlobalSettingsPage() -> View {
     let update_language = {
         let config = config.clone();
         move |ev: Event| {
-            let target: HtmlSelectElement = ev.target().unwrap().dyn_into().unwrap();
-            let mut new_config = config.get_clone();
-            new_config.language = target.value();
-            config.set(new_config);
+            if let Some(target) = ev.target() {
+                if let Ok(target) = target.dyn_into::<HtmlSelectElement>() {
+                    let mut new_config = config.get_clone();
+                    new_config.language = target.value();
+                    config.set(new_config);
+                }
+            }
         }
     };
 
     let update_project_root = {
         let config = config.clone();
         move |ev: Event| {
-            let target: HtmlInputElement = ev.target().unwrap().dyn_into().unwrap();
-            let mut new_config = config.get_clone();
-            new_config.project_root_dir = target.value();
-            config.set(new_config);
+            if let Some(target) = ev.target() {
+                if let Ok(target) = target.dyn_into::<HtmlInputElement>() {
+                    let mut new_config = config.get_clone();
+                    new_config.project_root_dir = target.value();
+                    config.set(new_config);
+                }
+            }
         }
     };
 
     let update_external_uv = {
         let config = config.clone();
         move |ev: Event| {
-            let target: HtmlInputElement = ev.target().unwrap().dyn_into().unwrap();
-            let mut new_config = config.get_clone();
-            new_config.enable_external_uv = target.checked();
-            config.set(new_config);
+            if let Some(target) = ev.target() {
+                if let Ok(target) = target.dyn_into::<HtmlInputElement>() {
+                    let mut new_config = config.get_clone();
+                    new_config.enable_external_uv = target.checked();
+                    config.set(new_config);
+                }
+            }
         }
     };
 
     let update_dev_mode = {
         let config = config.clone();
         move |ev: Event| {
-            let target: HtmlInputElement = ev.target().unwrap().dyn_into().unwrap();
-            let mut new_config = config.get_clone();
-            new_config.dev_mode = Some(target.checked());
-            config.set(new_config);
+            if let Some(target) = ev.target() {
+                if let Ok(target) = target.dyn_into::<HtmlInputElement>() {
+                    let mut new_config = config.get_clone();
+                    new_config.dev_mode = Some(target.checked());
+                    config.set(new_config);
+                }
+            }
         }
     };
 

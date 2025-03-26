@@ -1,0 +1,3 @@
+[submodule "products"]
+	path = products
+	url = git@github.com:shoucuo-ai/toy-studio-products.git

@@ -18,6 +18,7 @@ use crate::AppConfig;
 lazy_static! {
     pub static ref APP_INSTALLED: Mutex<HashMap<String, Option<Arc<Mutex<Child>>>>> =
         Mutex::new(HashMap::new());
+    pub static ref GIT_PROXY: Mutex<String> = Mutex::new("https://ghfast.top".to_string());
 }
 
 /// 获取所有产品列表, 包括已安装和未安装的产品
@@ -36,7 +37,13 @@ pub fn get_installed_product_list(app_handle: AppHandle) -> Result<String, Strin
     let all_products = app_config.get_meta_product_list()?;
     let installed_products: Vec<&Product> = all_products
         .iter()
-        .filter(|product| APP_INSTALLED.lock().unwrap().contains_key(&product.id))
+        .filter(|product| {
+            if let Ok(map) = APP_INSTALLED.lock() {
+                map.contains_key(&product.id)
+            } else {
+                false
+            }
+        })
         .collect();
     serde_json::to_string(&installed_products).map_err(|e| e.to_string())
 }
@@ -63,7 +70,13 @@ pub fn product_install(app_handle: AppHandle, pid: String) -> Result<(), String>
 
     if !app_config.dev_mode() {
         // 1. git clone
-        git_clone(git_url, branch, &install_dir, &bak_dir)?;
+        if let Err(e) = git_clone(&git_url, &branch, &install_dir, &bak_dir) {
+            println!("git_clone error:{}", e);
+            let git_proxy = GIT_PROXY.lock().map_err(|e| e.to_string())?;
+            println!("try to use git proxy:{}", git_proxy);
+            let git_url_proxy = format!("{git_proxy}/{}", git_url);
+            git_clone(&git_url_proxy, &branch, &install_dir, &bak_dir)?;
+        }
 
         // 2. create venv
         uv_venv(&install_dir, &product.download.python_version)?;
@@ -88,7 +101,8 @@ pub fn product_install(app_handle: AppHandle, pid: String) -> Result<(), String>
         let install_dir = install_dir.to_string_lossy().to_string();
         // 开发模式下使用cmd方式完成，合并为一个脚本
         let git_clone_cmd = format!("git clone -b {branch} {git_url} {install_dir}");
-        let git_url_proxy = format!("https://ghfast.top/{}", git_url);
+        let git_proxy = GIT_PROXY.lock().map_err(|e| e.to_string())?;
+        let git_url_proxy = format!("{git_proxy}/{}", git_url);
         let git_clone_cmd_proxy = format!("git clone -b {branch} {git_url_proxy} {install_dir}");
         let python_version = product.download.python_version;
         let cmd_script = if skip_clone {
@@ -111,7 +125,9 @@ pub fn product_install(app_handle: AppHandle, pid: String) -> Result<(), String>
         "--------------------------------APP_INSTALLED insert:{}-----------------------",
         product.id
     );
-    APP_INSTALLED.lock().unwrap().insert(product.id, None);
+    if let Ok(mut map) = APP_INSTALLED.lock() {
+        map.insert(product.id, None);
+    }
 
     Ok(())
 }
@@ -140,7 +156,7 @@ pub fn product_reinstall(app_handle: AppHandle, pid: String) -> Result<(), Strin
     let branch = product.download.branch;
     let bak_dir = app_config.get_product_bak_path();
 
-    git_clone(git_url, branch, &install_dir, &bak_dir)?;
+    git_clone(&git_url, &branch, &install_dir, &bak_dir)?;
     uv_venv(&install_dir, &product.download.python_version)?;
     uv_sync(&install_dir)?;
 
@@ -148,7 +164,9 @@ pub fn product_reinstall(app_handle: AppHandle, pid: String) -> Result<(), Strin
         "--------------------------------APP_INSTALLED insert:{}-----------------------",
         product.id
     );
-    APP_INSTALLED.lock().unwrap().insert(product.id, None);
+    if let Ok(mut map) = APP_INSTALLED.lock() {
+        map.insert(product.id, None);
+    }
 
     Ok(())
 }
@@ -170,7 +188,9 @@ pub fn product_uninstall(app_handle: AppHandle, pid: String) -> Result<(), Strin
 
     fs::remove_dir_all(&install_dir).map_err(|e| e.to_string())?;
 
-    APP_INSTALLED.lock().unwrap().remove(&pid);
+    if let Ok(mut map) = APP_INSTALLED.lock() {
+        map.remove(&pid);
+    }
 
     Ok(())
 }
@@ -194,9 +214,13 @@ pub fn product_startup(app_handle: AppHandle, pid: String) -> Result<(), String>
     println!("product:{:?}", product);
 
     // 2. check if product is already running
-    if let Some(Some(child)) = APP_INSTALLED.lock().unwrap().get(&product.id) {
-        if let Ok(None) = child.lock().unwrap().try_wait() {
-            return Err("Product already running".to_string());
+    if let Ok(map) = APP_INSTALLED.lock() {
+        if let Some(Some(child)) = map.get(&product.id) {
+            if let Ok(mut child) = child.lock() {
+                if let Ok(None) = child.try_wait() {
+                    return Err("Product already running".to_string());
+                }
+            }
         }
     }
 
@@ -217,11 +241,14 @@ pub fn product_startup(app_handle: AppHandle, pid: String) -> Result<(), String>
     args.insert(0, "run".to_string());
     println!("args:{:?}", args);
 
-
     let child = crate::run_command(install_dir, "uv", &args, &product_name, &product.id)?;
 
-    APP_INSTALLED.lock().unwrap().insert(pid, Some(child));
-    println!("APP_INSTALLED:{}", APP_INSTALLED.lock().unwrap().len());
+    if let Ok(mut map) = APP_INSTALLED.lock() {
+        map.insert(pid.clone(), Some(child));
+        println!("APP_INSTALLED ok:{}", pid.clone());
+    } else {
+        println!("APP_INSTALLED failed:{}", pid.clone());
+    }
     Ok(())
 }
 
@@ -230,9 +257,13 @@ pub fn product_startup(app_handle: AppHandle, pid: String) -> Result<(), String>
 pub fn product_shutdown(pid: String) -> Result<(), String> {
     println!("product_shutdown:{}", pid);
 
-    let mut child = APP_INSTALLED.lock().unwrap().remove(&pid);
-    if let Some(Some(child)) = child.take() {
-        child.lock().unwrap().kill().map_err(|e| e.to_string())?;
+    if let Ok(mut map) = APP_INSTALLED.lock() {
+        let mut child = map.remove(&pid);
+        if let Some(Some(child)) = child.take() {
+            if let Ok(mut child) = child.lock() {
+                child.kill().map_err(|e| e.to_string())?;
+            }
+        }
     }
     Ok(())
 }
@@ -259,7 +290,7 @@ pub fn product_upgrade(app_handle: AppHandle, pid: String) -> Result<(), String>
     let branch = product.download.branch;
     let bak_dir = app_config.get_product_bak_path();
 
-    git_clone(git_url, branch, &install_dir, &bak_dir)?;
+    git_clone(&git_url, &branch, &install_dir, &bak_dir)?;
     uv_venv(&install_dir, &product.download.python_version)?;
     uv_sync(&install_dir)?;
 
@@ -267,7 +298,9 @@ pub fn product_upgrade(app_handle: AppHandle, pid: String) -> Result<(), String>
         "--------------------------------APP_INSTALLED insert:{}-----------------------",
         product.id
     );
-    APP_INSTALLED.lock().unwrap().insert(product.id, None);
+    if let Ok(mut map) = APP_INSTALLED.lock() {
+        map.insert(product.id, None);
+    }
 
     Ok(())
 }
@@ -288,8 +321,10 @@ pub(crate) fn init_installed_products(app_handle: &AppHandle) -> Result<(), Stri
                 let product_name = product_file.file_name();
                 let mut product_id = product_name.to_string_lossy().to_string();
                 product_id.push_str(".toml");
-                println!("--------------------------------APP_INSTALLED insert:{}-----------------------", product_id);
-                APP_INSTALLED.lock().unwrap().insert(product_id, None);
+                println!("--------------------------------APP_INSTALLED insert:{}-----[------------------", product_id);
+                if let Ok(mut child) = APP_INSTALLED.lock() {
+                    child.insert(product_id, None);
+                }
             }
         }
     }
@@ -299,11 +334,23 @@ pub(crate) fn init_installed_products(app_handle: &AppHandle) -> Result<(), Stri
 /// 初始化产品元数据
 pub(crate) fn init_meta_products(app_handle: &AppHandle) -> Result<(), String> {
     let app_config = AppConfig::get_app_config(&app_handle)?;
+    let bak_dir = app_config.get_product_bak_path();
     let meta_products_dir = app_config.get_meta_products_dir();
 
     let products_dir = Path::new("products");
     let canonicalize = products_dir.canonicalize().map_err(|e| e.to_string())?;
     println!("products_dir:{:?}", canonicalize);
+
+    let git_url = "https://github.com/shoucuo-ai/toy-studio-products.git";
+    let branch = "main";
+    if let Err(_e) = git_clone(git_url, branch, &canonicalize, &bak_dir) {
+        println!("git_clone {} error:{}", git_url, _e);
+        let git_proxy = GIT_PROXY.lock().map_err(|e| e.to_string())?;
+        let git_url_proxy = format!("{git_proxy}/{}", git_url);
+        println!("try to use git proxy:{}, url:{}", git_proxy, git_url_proxy);
+        let _ = git_clone(&git_url_proxy, &branch, &canonicalize, &bak_dir);
+    }
+
     let product_files = fs::read_dir(&products_dir).map_err(|e| e.to_string())?;
 
     for product_file in product_files {

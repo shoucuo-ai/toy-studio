@@ -13,12 +13,15 @@ pub async fn select_directory(app_handle: AppHandle) -> Result<String, String> {
     let f = f
         .set_directory(PathBuf::from("."))
         .set_title("select directory");
-    let dir = f.blocking_pick_folder();
-    match dir {
+    match f.blocking_pick_folder() {
         Some(path) => {
-            let path = path.as_path().unwrap().to_string_lossy().into_owned();
-            println!("path: {:?}", path);
-            Ok(path)
+            if let Some(path) = path.as_path() {
+                let path = path.to_string_lossy().into_owned();
+                println!("path: {:?}", path);
+                Ok(path)
+            } else {
+                Err("invalid path".to_string())
+            }
         }
         None => Ok("".to_string()),
     }
